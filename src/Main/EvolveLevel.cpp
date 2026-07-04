@@ -734,6 +734,11 @@ void EvolveLevel( const int lv, const double dTime_FaLv )
 // ===============================================================================================
          if ( OPT__VERBOSE  &&  MPI_Rank == 0 )    Aux_Message( stdout, "   Lv %2d: Flu_FixUp %24s... ", lv, "" );
 
+//       backup the original internal energy in case fix-up operations produce unphysical values
+#        ifdef EXTRA_EOS_CHECK
+         Hydro_RestoreEint_Backup( lv, amr->FluSg[lv], amr->MagSg[lv] );
+#        endif
+
 //       12-1. use the average data on fine grids to correct the coarse-grid data
          if ( OPT__FIXUP_RESTRICT )
          {
@@ -827,6 +832,11 @@ void EvolveLevel( const int lv, const double dTime_FaLv )
                                            (Flu_ParaBuf<PS1)?DATA_AFTER_FIXUP:DATA_GENERAL,
                                            FixUpVar_Flux | FixUpVar_Restrict, _MAG, Flu_ParaBuf, USELB_YES ),
                         Timer_GetBuf[lv][3],   TIMER_ON   );
+
+//       restore the original internal energy if fix-up operations produce unphysical values
+#        ifdef EXTRA_EOS_CHECK
+         Hydro_RestoreEint_Check( lv, amr->FluSg[lv], amr->MagSg[lv] );
+#        endif
 
          if ( OPT__VERBOSE  &&  MPI_Rank == 0 )    Aux_Message( stdout, "done\n" );
 // ===============================================================================================
