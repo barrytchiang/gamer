@@ -145,12 +145,13 @@ void Hydro_RestoreEint_Check( const int lv, const int FluSg, const int MagSg )
 //       restore the original internal energy if needed
          if ( CheckFailed_ThisCell )
          {
-            const real EintNew = Hydro_Con2Eint( fluid[DENS], fluid[MOMX], fluid[MOMY], fluid[MOMZ], fluid[ENGY],
-                                                 CheckMinEint_No, NULL_REAL, PassiveFloorMask, Emag,
-                                                 EoS_GuessHTilde_CPUPtr, EoS_HTilde2Temp_CPUPtr,
-                                                 EoS_AuxArray_Flt, EoS_AuxArray_Int, h_EoS_Table );
+// 	    recompute Etot directly from the backed-up internal energy
+//          --> avoid computing the difference between the backed-up and new internal energy,
+//              since the latter may be non-finite
+            const real EtotNew = Hydro_ConEint2Etot( fluid[DENS], fluid[MOMX], fluid[MOMY], fluid[MOMZ],
+                                                     EintBk[PID][k][j][i], Emag );
 
-            amr->patch[FluSg][lv][PID]->fluid[ENGY][k][j][i] += EintBk[PID][k][j][i] - EintNew;
+            amr->patch[FluSg][lv][PID]->fluid[ENGY][k][j][i] = EtotNew;
 
             CheckFailed_AnyCell = true;
 
@@ -158,7 +159,7 @@ void Hydro_RestoreEint_Check( const int lv, const int FluSg, const int MagSg )
 //          is always physical
 //          --> excluding floating-point rounding errors (CK_UNPHY_RND_NO) to avoid false alarms
 #           ifdef GAMER_DEBUG
-            fluid[ENGY] = amr->patch[FluSg][lv][PID]->fluid[ENGY][k][j][i];
+            fluid[ENGY] = EtotNew;
 
             if (  Hydro_IsUnphysical( UNPHY_MODE_CONS, fluid, Emag,
                                       EoS_DensEint2Pres_CPUPtr, EoS_GuessHTilde_CPUPtr, EoS_HTilde2Temp_CPUPtr,
