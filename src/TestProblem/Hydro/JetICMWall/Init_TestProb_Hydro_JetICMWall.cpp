@@ -305,6 +305,7 @@ void SetGridIC( real fluid[], const double x, const double y, const double z, co
    PriReal[2] = 0.0;
    PriReal[3] = 0.0;
    PriReal[4] = (real)Amb_Pressure;
+   for (int v=NCOMP_FLUID; v<NCOMP_TOTAL; v++)  PriReal[v] = 0.0; // will be overwritten later
 
    Hydro_Pri2Con( PriReal, fluid, false, PassiveIntFrac_NVar, PassiveIntFrac_VarIdx,
                   EoS_DensPres2Eint_CPUPtr, EoS_Temp2HTilde_CPUPtr, EoS_HTilde2Temp_CPUPtr,
