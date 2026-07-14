@@ -387,7 +387,8 @@ void Aux_Check_Parameter()
    if ( OPT__OUTPUT_TOTAL == OUTPUT_FORMAT_CBINARY )
       Aux_Message( stderr, "WARNING : OPT__OUTPUT_TOTAL = 2 (C-binary) is deprecated !!\n" );
 
-   if ( !OPT__OUTPUT_TOTAL  &&  !OPT__OUTPUT_PART  &&  !OPT__OUTPUT_USER  &&  !OPT__OUTPUT_BASEPS )
+   if ( !OPT__OUTPUT_TOTAL  &&  !OPT__OUTPUT_PART  &&  !OPT__OUTPUT_USER  &&  !OPT__OUTPUT_BASEPS  &&
+        OPT__OUTPUT_SUBDIV_GRID == 0  &&  !OPT__OUTPUT_SUBDIV_PAR  &&  !OPT__OUTPUT_SUBDIV_TRACER  &&  !OPT__OUTPUT_SUBDIV_USER )
 #  ifdef PARTICLE
    if ( !OPT__OUTPUT_PAR_MODE )
 #  endif
@@ -396,13 +397,39 @@ void Aux_Check_Parameter()
    if ( OPT__OUTPUT_SUBDIV == 0 )
       Aux_Error( ERROR_INFO, "OPT__OUTPUT_SUBDIV = 0 is not allowed; use <0 to disable or a positive integer (>=1) to enable !!\n" );
 
-   if ( OPT__OUTPUT_SUBDIV >= 1  &&  !OPT__OUTPUT_USER )
-      Aux_Error( ERROR_INFO, "OPT__OUTPUT_SUBDIV >= 1 requires OPT__OUTPUT_USER = 1 !!\n" );
+   if ( OPT__OUTPUT_SUBDIV_GRID < 0  ||  OPT__OUTPUT_SUBDIV_GRID > 4 )
+      Aux_Error( ERROR_INFO, "OPT__OUTPUT_SUBDIV_GRID = %d is not supported; valid values: 0=off, 1=all, 2=Dens, 3=Mom, 4=Engy !!\n",
+                 OPT__OUTPUT_SUBDIV_GRID );
 
-   if ( OPT__OUTPUT_SUBDIV >= 2  &&  OPT__OUTPUT_USER )
+// any sub-cadence output flag requires OPT__OUTPUT_SUBDIV >= 1;
+// conversely, OPT__OUTPUT_SUBDIV >= 1 requires at least one flag to be enabled
+   const bool AnySubDiv = OPT__OUTPUT_SUBDIV_GRID > 0  ||  OPT__OUTPUT_SUBDIV_PAR  ||
+                          OPT__OUTPUT_SUBDIV_TRACER  ||  OPT__OUTPUT_SUBDIV_USER;
+   if ( AnySubDiv  &&  OPT__OUTPUT_SUBDIV < 1 )
+      Aux_Error( ERROR_INFO, "OPT__OUTPUT_SUBDIV_GRID/PAR/TRACER/USER requires OPT__OUTPUT_SUBDIV >= 1 !!\n" );
+
+   if ( OPT__OUTPUT_SUBDIV >= 1  &&  !AnySubDiv )
+      Aux_Error( ERROR_INFO, "OPT__OUTPUT_SUBDIV >= 1 requires at least one of OPT__OUTPUT_SUBDIV_GRID/PAR/TRACER/USER to be enabled !!\n" );
+
+   if ( OPT__OUTPUT_SUBDIV_USER  &&  !OPT__OUTPUT_USER )
+      Aux_Error( ERROR_INFO, "OPT__OUTPUT_SUBDIV_USER requires OPT__OUTPUT_USER = 1 !!\n" );
+
+#  ifndef PARTICLE
+   if ( OPT__OUTPUT_SUBDIV_PAR )
+      Aux_Error( ERROR_INFO, "OPT__OUTPUT_SUBDIV_PAR requires PARTICLE to be enabled at compile time !!\n" );
+   if ( OPT__OUTPUT_SUBDIV_TRACER )
+      Aux_Error( ERROR_INFO, "OPT__OUTPUT_SUBDIV_TRACER requires PARTICLE (TRACER) to be enabled at compile time !!\n" );
+#  endif
+
+#  ifndef SUPPORT_HDF5
+   if ( OPT__OUTPUT_SUBDIV_GRID > 0  ||  OPT__OUTPUT_SUBDIV_PAR  ||  OPT__OUTPUT_SUBDIV_TRACER )
+      Aux_Error( ERROR_INFO, "OPT__OUTPUT_SUBDIV_GRID/PAR/TRACER requires SUPPORT_HDF5 !!\n" );
+#  endif
+
+   if ( AnySubDiv  &&  OPT__OUTPUT_SUBDIV >= 2 )
    {
       if ( OPT__OUTPUT_MODE == OUTPUT_CONST_DT  &&  OUTPUT_DT <= 0.0 )
-         Aux_Error( ERROR_INFO, "OPT__OUTPUT_SUBDIV >= 2 with OPT__OUTPUT_MODE=2 requires OUTPUT_DT > 0 !!\n" );
+         Aux_Error( ERROR_INFO, "OPT__OUTPUT_SUBDIV >= 2 requires OUTPUT_DT > 0 when OPT__OUTPUT_MODE=2 !!\n" );
    }
 
 #  ifdef PARTICLE

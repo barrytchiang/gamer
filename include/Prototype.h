@@ -352,7 +352,7 @@ void Output_DumpData_Part( const OptOutputPart_t Part, const bool BaseOnly, cons
                            const double z, const char *FileName );
 void Output_DumpData_Total( const char *FileName );
 #ifdef SUPPORT_HDF5
-void Output_DumpData_Total_HDF5( const char *FileName );
+void Output_DumpData_Total_HDF5( const char *FileName, const bool SkipPar=false, const int SubGridMode=1 );
 #endif
 void Output_DumpManually( int &Dump_global );
 void Output_FlagMap( const int lv, const int xyz, const char *comment );
@@ -770,6 +770,10 @@ void Par_MapMesh2Particles( const double EdgeL[3], const double EdgeR[3],
 void Par_SetParUID();
 void Par_Init_Attribute_Mesh();
 void Par_Output_TracerParticle_Mesh();
+#ifdef TRACER
+void Par_Output_SubTracer( const int SubDumpID );
+#endif
+void Par_Output_SubParticle( const int SubDumpID );
 FieldIdx_t AddParticleAttributeFlt( const char *InputLabel );
 FieldIdx_t AddParticleAttributeInt( const char *InputLabel );
 FieldIdx_t GetParticleAttributeFltIndex( const char *InputLabel, const Check_t Check );

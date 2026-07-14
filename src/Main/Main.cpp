@@ -54,6 +54,10 @@ double               BOX_SIZE, DT__MAX, DT__FLUID, DT__FLUID_INIT, END_T, OUTPUT
 long                 END_STEP;
 int                  NX0_TOT[3], OUTPUT_STEP, OUTPUT_WALLTIME_UNIT, REGRID_COUNT, REFINE_NLEVEL, FLU_GPU_NPGROUP, SRC_GPU_NPGROUP, OMP_NTHREAD;
 int                  OPT__OUTPUT_SUBDIV             = -1;
+int                  OPT__OUTPUT_SUBDIV_GRID        = 0;
+bool                 OPT__OUTPUT_SUBDIV_PAR         = false;
+bool                 OPT__OUTPUT_SUBDIV_TRACER      = false;
+bool                 OPT__OUTPUT_SUBDIV_USER        = false;
 int                  MPI_NRank, MPI_NRank_X[3];
 int                  GPU_NSTREAM, FLAG_BUFFER_SIZE, FLAG_BUFFER_SIZE_MAXM1_LV, FLAG_BUFFER_SIZE_MAXM2_LV, MAX_LEVEL;
 

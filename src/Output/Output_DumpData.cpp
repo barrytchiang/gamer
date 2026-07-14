@@ -288,7 +288,7 @@ void Output_DumpData( const int Stage )
       if ( OPT__OUTPUT_TOTAL )            Output_DumpData_Total( FileName_Total );
       if ( OPT__OUTPUT_PART  )            Output_DumpData_Part( OPT__OUTPUT_PART, OPT__OUTPUT_BASE, OUTPUT_PART_X,
                                                                 OUTPUT_PART_Y, OUTPUT_PART_Z, FileName_Part );
-      if ( OPT__OUTPUT_USER )
+      if ( OPT__OUTPUT_USER  &&  !OPT__OUTPUT_SUBDIV_USER )
       {
          if ( Output_User_Ptr != NULL )   Output_User_Ptr();
          else
@@ -304,9 +304,31 @@ void Output_DumpData( const int Stage )
 
       Write_DumpRecord();
 
-//    track sub-dump counter and record at every main dump when the feature is enabled
-      if ( OPT__OUTPUT_USER  &&  OPT__OUTPUT_SUBDIV >= 1 )
+//    fire sub-cadence outputs at N=1 (or at every main dump when SUBDIV >= 1)
+      const bool AnySubDiv = OPT__OUTPUT_SUBDIV_GRID > 0  ||  OPT__OUTPUT_SUBDIV_PAR  ||
+                             OPT__OUTPUT_SUBDIV_TRACER  ||  OPT__OUTPUT_SUBDIV_USER;
+      if ( AnySubDiv  &&  OPT__OUTPUT_SUBDIV >= 1 )
       {
+         char SubFileName[2*MAX_STRING];
+#        ifdef SUPPORT_HDF5
+         if ( OPT__OUTPUT_SUBDIV_GRID > 0 )
+         {
+            sprintf( SubFileName, "%s/SubGrid_%06d", OUTPUT_DIR, SubDumpID );
+            Output_DumpData_Total_HDF5( SubFileName, true, OPT__OUTPUT_SUBDIV_GRID );
+         }
+#        endif
+#        ifdef PARTICLE
+         if ( OPT__OUTPUT_SUBDIV_PAR )     Par_Output_SubParticle( SubDumpID );
+#        ifdef TRACER
+         if ( OPT__OUTPUT_SUBDIV_TRACER )  Par_Output_SubTracer( SubDumpID );
+#        endif
+#        endif
+         if ( OPT__OUTPUT_SUBDIV_USER )
+         {
+            if ( Output_User_Ptr != NULL )   Output_User_Ptr();
+            else
+               Aux_Error( ERROR_INFO, "Output_User_Ptr == NULL for OPT__OUTPUT_SUBDIV_USER !!\n" );
+         }
          Write_SubDumpRecord();
          SubDumpID++;
       }
@@ -335,41 +357,62 @@ void Output_DumpData( const int Stage )
    } // if ( OutputData || OutputData_RunTime )
 
 
-// sub-dump gate: fire Output_User_Ptr between main dumps at the sub-cadence
-   if ( OPT__OUTPUT_SUBDIV >= 2  &&  OPT__OUTPUT_USER  &&  !OutputData  &&  !OutputData_RunTime  &&  !OutputData_Walltime )
+// sub-dump gate: fire individual sub-cadence outputs between main dumps
    {
-      bool SubDump = false;
-
-      switch ( OPT__OUTPUT_MODE )
+      const bool AnySubDiv2 = OPT__OUTPUT_SUBDIV_GRID > 0  ||  OPT__OUTPUT_SUBDIV_PAR  ||
+                              OPT__OUTPUT_SUBDIV_TRACER  ||  OPT__OUTPUT_SUBDIV_USER;
+      if ( OPT__OUTPUT_SUBDIV >= 2  &&  AnySubDiv2  &&  !OutputData  &&  !OutputData_RunTime  &&  !OutputData_Walltime )
       {
-         case OUTPUT_CONST_STEP :
-            if ( Step > LastMainDumpStep  &&  (Step - LastMainDumpStep) % OPT__OUTPUT_SUBDIV == 0 )
-               SubDump = true;
-            break;
+         bool SubDump = false;
 
-         case OUTPUT_CONST_DT :
-         case OUTPUT_USE_TABLE :
-            if (   ( Time[0] != 0.0  &&  fabs( (Time[0] - SubDumpTime) / Time[0] ) < 1.0e-8  )
-                || ( Time[0] == 0.0  &&  fabs(  Time[0] - SubDumpTime            ) < 1.0e-12 )   )
-               SubDump = true;
-            break;
+         switch ( OPT__OUTPUT_MODE )
+         {
+            case OUTPUT_CONST_STEP :
+               if ( Step > LastMainDumpStep  &&  (Step - LastMainDumpStep) % OPT__OUTPUT_SUBDIV == 0 )
+                  SubDump = true;
+               break;
 
-         default :
-            Aux_Error( ERROR_INFO, "incorrect parameter %s = %d !!\n", "OPT__OUTPUT_MODE", OPT__OUTPUT_MODE );
-      } // switch ( OPT__OUTPUT_MODE )
+            case OUTPUT_CONST_DT :
+            case OUTPUT_USE_TABLE :
+               if (   ( Time[0] != 0.0  &&  fabs( (Time[0] - SubDumpTime) / Time[0] ) < 1.0e-8  )
+                   || ( Time[0] == 0.0  &&  fabs(  Time[0] - SubDumpTime            ) < 1.0e-12 )   )
+                  SubDump = true;
+               break;
 
-      if ( SubDump )
-      {
-         if ( Output_User_Ptr != NULL )   Output_User_Ptr();
-         else
-            Aux_Error( ERROR_INFO, "Output_User_Ptr == NULL for OPT__OUTPUT_SUBDIV !!\n" );
+            default :
+               Aux_Error( ERROR_INFO, "incorrect parameter %s = %d !!\n", "OPT__OUTPUT_MODE", OPT__OUTPUT_MODE );
+         } // switch ( OPT__OUTPUT_MODE )
 
-         Write_SubDumpRecord();
-         SubDumpID++;
+         if ( SubDump )
+         {
+            char SubFileName[2*MAX_STRING];
+#           ifdef SUPPORT_HDF5
+            if ( OPT__OUTPUT_SUBDIV_GRID > 0 )
+            {
+               sprintf( SubFileName, "%s/SubGrid_%06d", OUTPUT_DIR, SubDumpID );
+               Output_DumpData_Total_HDF5( SubFileName, true, OPT__OUTPUT_SUBDIV_GRID );
+            }
+#           endif
+#           ifdef PARTICLE
+            if ( OPT__OUTPUT_SUBDIV_PAR )     Par_Output_SubParticle( SubDumpID );
+#           ifdef TRACER
+            if ( OPT__OUTPUT_SUBDIV_TRACER )  Par_Output_SubTracer( SubDumpID );
+#           endif
+#           endif
+            if ( OPT__OUTPUT_SUBDIV_USER )
+            {
+               if ( Output_User_Ptr != NULL )   Output_User_Ptr();
+               else
+                  Aux_Error( ERROR_INFO, "Output_User_Ptr == NULL for OPT__OUTPUT_SUBDIV_USER !!\n" );
+            }
 
-//       advance SubDumpTime to the next sub-dump for time-based modes
-         if ( OPT__OUTPUT_MODE == OUTPUT_CONST_DT || OPT__OUTPUT_MODE == OUTPUT_USE_TABLE )
-            SubDumpTime += SubInterval;
+            Write_SubDumpRecord();
+            SubDumpID++;
+
+//          advance SubDumpTime to the next sub-dump for time-based modes
+            if ( OPT__OUTPUT_MODE == OUTPUT_CONST_DT || OPT__OUTPUT_MODE == OUTPUT_USE_TABLE )
+               SubDumpTime += SubInterval;
+         }
       }
    } // sub-dump gate
 

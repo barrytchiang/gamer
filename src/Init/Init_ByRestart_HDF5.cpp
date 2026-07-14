@@ -2438,6 +2438,10 @@ void Check_InputPara( const char *FileName, const int FormatVersion )
    LoadField( "Output_PartZ",                &RS.Output_PartZ,                SID, TID, NonFatal, &RT.Output_PartZ,                1, NonFatal );
    }
    LoadField( "InitDumpID",                  &RS.InitDumpID,                  SID, TID, NonFatal, &RT.InitDumpID,                  1, NonFatal );
+   LoadField( "Opt__Output_Subdiv_Grid",     &RS.Opt__Output_Subdiv_Grid,     SID, TID, NonFatal, &RT.Opt__Output_Subdiv_Grid,     1, NonFatal );
+   LoadField( "Opt__Output_Subdiv_Par",      &RS.Opt__Output_Subdiv_Par,      SID, TID, NonFatal, &RT.Opt__Output_Subdiv_Par,      1, NonFatal );
+   LoadField( "Opt__Output_Subdiv_Tracer",   &RS.Opt__Output_Subdiv_Tracer,   SID, TID, NonFatal, &RT.Opt__Output_Subdiv_Tracer,   1, NonFatal );
+   LoadField( "Opt__Output_Subdiv_User",     &RS.Opt__Output_Subdiv_User,     SID, TID, NonFatal, &RT.Opt__Output_Subdiv_User,     1, NonFatal );
 
 // libyt jupyter
 #  if ( defined(SUPPORT_LIBYT) && defined(LIBYT_JUPYTER) )

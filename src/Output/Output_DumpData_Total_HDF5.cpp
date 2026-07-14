@@ -288,7 +288,7 @@ Procedure for outputting new variables:
 //                                             DT__GRACKLE_COOLING, OPT__FLAG_COOLING_LEN, FlagTable_CoolingLen
 //                2508 : 2026/03/26 --> output particle unique id
 //-------------------------------------------------------------------------------------------------------
-void Output_DumpData_Total_HDF5( const char *FileName )
+void Output_DumpData_Total_HDF5( const char *FileName, const bool SkipPar, const int SubGridMode )
 {
 
    if ( MPI_Rank == 0 )    Aux_Message( stdout, "%s (DumpID = %d)     ...\n", __FUNCTION__, DumpID );
@@ -313,7 +313,11 @@ void Output_DumpData_Total_HDF5( const char *FileName )
 
    const int FluDumpIdx0 = NFieldStored;
 
-   int NCompFluSkip = 0;
+   int NCompFluSkip  = 0;
+   int NFluidPrimOut = 0;   // primitive hydro fields actually written
+   int NFluidOut     = 0;   // total fluid fields (prim + passive) actually written
+   int FluSrcIdx[NCOMP_TOTAL];  // FluSrcIdx[i] = fluid[] array index for the i-th output fluid field
+
    for (int v=0; v<NCOMP_TOTAL; v++)
    {
 #     if (  ELBDM_SCHEME == ELBDM_HYBRID  &&  !defined( GAMER_DEBUG )  )
@@ -323,6 +327,23 @@ void Output_DumpData_Total_HDF5( const char *FileName )
          continue;
       }
 #     endif
+
+//    field masking for grid sub-dumps (SubGridMode 2-4); SubGridMode 0/1 writes all fields
+#     if ( MODEL == HYDRO )
+      if ( SubGridMode >= 2 )
+      {
+         const char *lbl    = FieldLabel[v];
+         bool        include = false;
+         if      ( SubGridMode == 2 )  include = ( strcmp(  lbl, "Dens" ) == 0 );
+         else if ( SubGridMode == 3 )  include = ( strncmp( lbl, "Mom",  3 ) == 0 );
+         else if ( SubGridMode == 4 )  include = ( strcmp(  lbl, "Engy" ) == 0 );
+         if ( !include ) { NCompFluSkip += 1; continue; }
+      }
+#     endif
+
+      FluSrcIdx[NFluidOut] = v;
+      if ( v < NCOMP_FLUID )   NFluidPrimOut++;
+      NFluidOut++;
 
       const int FluDumpIdx = NFieldStored++;
       if ( FluDumpIdx >= NFIELD_STORED_MAX )
@@ -1270,14 +1291,15 @@ void Output_DumpData_Total_HDF5( const char *FileName )
                   } // for (int PID0=0; PID0<amr->NPatchComma[lv][1]; PID0+=8)
                } // if ( v >= UserDumpIdx0  &&  v < UserDumpIdx0 + UserDerField_Num )
 
-//             e. fluid variables
-               else if ( v >= FluDumpIdx0  &&  v < FluDumpIdx0+NCOMP_FLUID-NCompFluSkip )
+//             e. primitive fluid variables
+               else if ( v >= FluDumpIdx0  &&  v < FluDumpIdx0+NFluidPrimOut )
                {
+                  const int fv = FluSrcIdx[v - FluDumpIdx0];
 //                convert real/imag to density/phase in hybrid scheme
 //                bitwise reproducibility currently fails in hybrid scheme because of conversion from RE/IM to DENS/PHAS when storing fields in HDF5
 //                possible solution could be to convert RE/IM <-> DENS/PHAS using high-precision routines to ensure bitwise identity for significant digits
 #                 if ( ELBDM_SCHEME == ELBDM_HYBRID )
-                  if (  amr->use_wave_flag[lv]  &&  ( v == REAL || v == IMAG )  ) {
+                  if (  amr->use_wave_flag[lv]  &&  ( fv == REAL || fv == IMAG )  ) {
                      real Re, Im;
                      for (int PID=0; PID<amr->NPatchComma[lv][1]; PID++)
                      {
@@ -1288,9 +1310,9 @@ void Output_DumpData_Total_HDF5( const char *FileName )
                            Re = amr->patch[ amr->FluSg[lv] ][lv][PID]->fluid[REAL][k][j][i];
                            Im = amr->patch[ amr->FluSg[lv] ][lv][PID]->fluid[IMAG][k][j][i];
 
-                           if        ( v == REAL ) {
+                           if        ( fv == REAL ) {
                               FieldData[PID][k][j][i] = SATAN2( Im, Re );
-                           } else if ( v == IMAG ) {
+                           } else if ( fv == IMAG ) {
                               FieldData[PID][k][j][i] = (real)0.0;
                            }
                         }
@@ -1299,15 +1321,16 @@ void Output_DumpData_Total_HDF5( const char *FileName )
                   } else
 #                 endif // # if ( ELBDM_SCHEME == ELBDM_HYBRID )
                   for (int PID=0; PID<amr->NPatchComma[lv][1]; PID++)
-                     memcpy( FieldData[PID], amr->patch[ amr->FluSg[lv] ][lv][PID]->fluid[v], FieldSizeOnePatch );
-               } // if ( v >= FluDumpIdx0  &&  v < FluDumpIdx0+NCOMP_FLUID-NCompFluSkip )
+                     memcpy( FieldData[PID], amr->patch[ amr->FluSg[lv] ][lv][PID]->fluid[fv], FieldSizeOnePatch );
+               } // if ( v >= FluDumpIdx0  &&  v < FluDumpIdx0+NFluidPrimOut )
 
 //             f. passive fluid variables
-               else if ( v >= FluDumpIdx0+NCOMP_FLUID-NCompFluSkip  &&  v < FluDumpIdx0+NCompStore )
+               else if ( v >= FluDumpIdx0+NFluidPrimOut  &&  v < FluDumpIdx0+NFluidOut )
                {
+                  const int fv = FluSrcIdx[v - FluDumpIdx0];
                   for (int PID=0; PID<amr->NPatchComma[lv][1]; PID++)
-                     memcpy( FieldData[PID], amr->patch[ amr->FluSg[lv] ][lv][PID]->fluid[v+NCompFluSkip], FieldSizeOnePatch );
-               } // if ( v >= FluDumpIdx0+NCOMP_FLUID-NCompFluSkip  &&  v < FluDumpIdx0+NCompStore )
+                     memcpy( FieldData[PID], amr->patch[ amr->FluSg[lv] ][lv][PID]->fluid[fv], FieldSizeOnePatch );
+               } // if ( v >= FluDumpIdx0+NFluidPrimOut  &&  v < FluDumpIdx0+NFluidOut )
 
                else
                   Aux_Error( ERROR_INFO, "incorrect index (%d) !!\n", v );
@@ -1418,8 +1441,10 @@ void Output_DumpData_Total_HDF5( const char *FileName )
 
 
 
-// 6. output particles
+// 6. output particles (skipped for grid-only sub-dumps)
+   if ( !SkipPar )
 #  ifdef PARTICLE
+   {
 //###ISSUE: currently we output all particles at the same level at once (although one attribute at a time),
 //          which may introduce a large memory overhead
 //          --> solution: we can output a fixed number of particles at a time (see Output_DumpData_Total.cpp)
@@ -1614,6 +1639,7 @@ void Output_DumpData_Total_HDF5( const char *FileName )
    delete [] ParFltBuf1v1Lv;
    delete [] ParIntBuf1v1Lv;
    delete [] NParLv_EachRank;
+   } // if ( !SkipPar )
 #  endif // #ifdef PARTICLE
 
 
@@ -2962,6 +2988,10 @@ void FillIn_InputPara( InputPara_t &InputPara, const int NFieldStored, char Fiel
    InputPara.Output_PartZ                = OUTPUT_PART_Z;
    InputPara.InitDumpID                  = INIT_DUMPID;
    InputPara.Opt__Output_Subdiv          = OPT__OUTPUT_SUBDIV;
+   InputPara.Opt__Output_Subdiv_Grid     = OPT__OUTPUT_SUBDIV_GRID;
+   InputPara.Opt__Output_Subdiv_Par      = OPT__OUTPUT_SUBDIV_PAR;
+   InputPara.Opt__Output_Subdiv_Tracer   = OPT__OUTPUT_SUBDIV_TRACER;
+   InputPara.Opt__Output_Subdiv_User     = OPT__OUTPUT_SUBDIV_USER;
 
 // libyt jupyter
 #  if ( defined(SUPPORT_LIBYT) && defined(LIBYT_JUPYTER) )
@@ -4042,6 +4072,10 @@ void GetCompound_InputPara( hid_t &H5_TypeID, const int NFieldStored )
    H5Tinsert( H5_TypeID, "Output_PartZ",                HOFFSET(InputPara_t,Output_PartZ               ), H5T_NATIVE_DOUBLE           );
    H5Tinsert( H5_TypeID, "InitDumpID",                  HOFFSET(InputPara_t,InitDumpID                 ), H5T_NATIVE_INT              );
    H5Tinsert( H5_TypeID, "Opt__Output_Subdiv",          HOFFSET(InputPara_t,Opt__Output_Subdiv         ), H5T_NATIVE_INT              );
+   H5Tinsert( H5_TypeID, "Opt__Output_Subdiv_Grid",    HOFFSET(InputPara_t,Opt__Output_Subdiv_Grid    ), H5T_NATIVE_INT              );
+   H5Tinsert( H5_TypeID, "Opt__Output_Subdiv_Par",     HOFFSET(InputPara_t,Opt__Output_Subdiv_Par     ), H5T_NATIVE_INT              );
+   H5Tinsert( H5_TypeID, "Opt__Output_Subdiv_Tracer",  HOFFSET(InputPara_t,Opt__Output_Subdiv_Tracer  ), H5T_NATIVE_INT              );
+   H5Tinsert( H5_TypeID, "Opt__Output_Subdiv_User",    HOFFSET(InputPara_t,Opt__Output_Subdiv_User    ), H5T_NATIVE_INT              );
 
 // libyt jupyter
 #  if ( defined(SUPPORT_LIBYT) && defined(LIBYT_JUPYTER) )

@@ -870,6 +870,10 @@ struct InputPara_t
    double Output_PartZ;
    int    InitDumpID;
    int    Opt__Output_Subdiv;
+   int    Opt__Output_Subdiv_Grid;
+   int    Opt__Output_Subdiv_Par;
+   int    Opt__Output_Subdiv_Tracer;
+   int    Opt__Output_Subdiv_User;
 
 // libyt jupyter interface
 #  if ( defined(SUPPORT_LIBYT) && defined(LIBYT_JUPYTER) )
