@@ -75,8 +75,10 @@ void Par_Output_SubParticle( const int SubDumpID )
 //-------------------------------------------------------------------------------------------------------
 static void Par_Output_SubDump_HDF5( const char *FileName, const bool IsTracer, const int SubDumpID )
 {
-   const long   NTotal    = amr->Par->NPar_AcPlusInac;
-   const int    NMeshAttr = amr->Par->Mesh_Attr_Num;
+   const long   NTotal      = amr->Par->NPar_AcPlusInac;
+   const int    NMeshAttr   = amr->Par->Mesh_Attr_Num;
+   const bool   ForceFloat32 = IsTracer ? (OPT__OUTPUT_SUBDIV_TRACER == 2) : (OPT__OUTPUT_SUBDIV_PAR == 2);
+   const hid_t  H5T_FltOut  = ForceFloat32 ? H5T_NATIVE_FLOAT : H5T_GAMER_REAL_PAR;
 
 // populate mesh-sampled attributes before counting particles
    if ( IsTracer  &&  NMeshAttr > 0 )   Par_Output_TracerParticle_Mesh();
@@ -155,7 +157,8 @@ static void Par_Output_SubDump_HDF5( const char *FileName, const bool IsTracer, 
 
       for (int v=0; v<PAR_NATT_FLT_TOTAL; v++)
       {
-         hid_t DID = H5Dcreate( GrpID, ParAttFltLabel[v], H5T_GAMER_REAL_PAR, SpaceID,
+         if ( IsTracer  &&  v == Idx_ParMass )   continue;
+         hid_t DID = H5Dcreate( GrpID, ParAttFltLabel[v], H5T_FltOut, SpaceID,
                                  H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT );
          H5Dclose( DID );
       }
@@ -168,7 +171,7 @@ static void Par_Output_SubDump_HDF5( const char *FileName, const bool IsTracer, 
       if ( IsTracer )
          for (int v=0; v<NMeshAttr; v++)
          {
-            hid_t DID = H5Dcreate( GrpID, amr->Par->Mesh_Attr_Label[v], H5T_GAMER_REAL_PAR, SpaceID,
+            hid_t DID = H5Dcreate( GrpID, amr->Par->Mesh_Attr_Label[v], H5T_FltOut, SpaceID,
                                     H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT );
             H5Dclose( DID );
          }
@@ -199,6 +202,7 @@ static void Par_Output_SubDump_HDF5( const char *FileName, const bool IsTracer, 
 
          for (int v=0; v<PAR_NATT_FLT_TOTAL; v++)
          {
+            if ( IsTracer  &&  v == Idx_ParMass )   continue;
             hid_t DID = H5Dopen( GrpID, ParAttFltLabel[v], H5P_DEFAULT );
             H5Dwrite( DID, H5T_GAMER_REAL_PAR, MemSID, FileSID, H5P_DEFAULT, BufFlt[v] );
             H5Dclose( DID );

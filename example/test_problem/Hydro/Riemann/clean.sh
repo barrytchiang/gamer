@@ -6,3 +6,4 @@ rm -f Record__Note Record__Timing Record__TimeStep Record__PatchCount Record__Du
       GRACKLE_INFO Record__DivB
 
 rm -f Fig__Riemann_*
+rm -f Sub*

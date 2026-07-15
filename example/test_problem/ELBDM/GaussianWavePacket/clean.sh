@@ -5,3 +5,4 @@ rm -f Record__Note Record__Timing Record__TimeStep Record__PatchCount Record__Du
       Record__ParticleCount Record__User Patch_* Record__NCorrUnphy FailedPatchGroup* *.pyc Record__LoadBalance Record__Hybrid
 
 rm -f Gaussian_*
+rm -f Sub*

@@ -5,3 +5,4 @@ rm -f Record__Note Record__Timing Record__TimeStep Record__PatchCount Record__Du
       Record__ParticleCount Record__User Patch_* Record__NCorrUnphy FailedPatchGroup* *.pyc Record__LoadBalance
 
 rm -f PotError.txt PotError.bin Fig__PotError_*.png Record__PoissonPerformance
+rm -f Sub*

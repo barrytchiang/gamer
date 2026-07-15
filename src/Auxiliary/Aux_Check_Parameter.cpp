@@ -401,6 +401,14 @@ void Aux_Check_Parameter()
       Aux_Error( ERROR_INFO, "OPT__OUTPUT_SUBDIV_GRID = %d is not supported; valid values: 0=off, 1=all, 2=Dens, 3=Mom, 4=Engy !!\n",
                  OPT__OUTPUT_SUBDIV_GRID );
 
+   if ( OPT__OUTPUT_SUBDIV_PAR < 0  ||  OPT__OUTPUT_SUBDIV_PAR > 2 )
+      Aux_Error( ERROR_INFO, "OPT__OUTPUT_SUBDIV_PAR = %d is not supported; valid values: 0=off, 1=on, 2=on+float32 !!\n",
+                 OPT__OUTPUT_SUBDIV_PAR );
+
+   if ( OPT__OUTPUT_SUBDIV_TRACER < 0  ||  OPT__OUTPUT_SUBDIV_TRACER > 2 )
+      Aux_Error( ERROR_INFO, "OPT__OUTPUT_SUBDIV_TRACER = %d is not supported; valid values: 0=off, 1=on, 2=on+float32 !!\n",
+                 OPT__OUTPUT_SUBDIV_TRACER );
+
 // any sub-cadence output flag requires OPT__OUTPUT_SUBDIV >= 1;
 // conversely, OPT__OUTPUT_SUBDIV >= 1 requires at least one flag to be enabled
    const bool AnySubDiv = OPT__OUTPUT_SUBDIV_GRID > 0  ||  OPT__OUTPUT_SUBDIV_PAR  ||

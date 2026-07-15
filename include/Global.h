@@ -64,8 +64,8 @@ extern long int   END_STEP;
 extern int        NX0_TOT[3], OUTPUT_STEP, OUTPUT_WALLTIME_UNIT, REGRID_COUNT, REFINE_NLEVEL, FLU_GPU_NPGROUP, SRC_GPU_NPGROUP, OMP_NTHREAD;
 extern int        OPT__OUTPUT_SUBDIV;                 // subdivide main dump interval for sub-dumps (<0=off; >=1=on)
 extern int        OPT__OUTPUT_SUBDIV_GRID;            // grid-only HDF5 at sub-cadence (0=off,1=all,2=Dens,3=Mom,4=Engy)
-extern bool       OPT__OUTPUT_SUBDIV_PAR;             // enable massive-particle compact HDF5 at sub-cadence
-extern bool       OPT__OUTPUT_SUBDIV_TRACER;          // enable tracer compact HDF5 at sub-cadence
+extern int        OPT__OUTPUT_SUBDIV_PAR;              // massive-particle HDF5 at sub-cadence (0=off,1=on,2=on+float32)
+extern int        OPT__OUTPUT_SUBDIV_TRACER;           // tracer HDF5 at sub-cadence (0=off,1=on,2=on+float32)
 extern bool       OPT__OUTPUT_SUBDIV_USER;            // fire Output_User_Ptr at sub-cadence (requires OPT__OUTPUT_USER)
 extern int        MPI_NRank, MPI_NRank_X[3];
 extern int        GPU_NSTREAM, FLAG_BUFFER_SIZE, FLAG_BUFFER_SIZE_MAXM1_LV, FLAG_BUFFER_SIZE_MAXM2_LV, MAX_LEVEL;
