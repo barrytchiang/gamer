@@ -58,6 +58,7 @@ if __name__ == "__main__":
 
     # Lx(r)
     Time_R, Power = mus.getRecordData(prefix+"/Record__ClusterCenter", [0, 30])
+    Time_R = 10.0*np.array(Time_R)
     data   = np.loadtxt(prefix+"/data_Lx.txt", skiprows=1)
     Time   = data[:, 0]
     Lx10   = data[:, 1]
@@ -76,7 +77,7 @@ if __name__ == "__main__":
     plt.plot(Time,   Lx500,  label="Lx(<500 kpc)",  linewidth=1.0)
     plt.plot(Time,   Lx1000, label="Lx(<1000 kpc)", linewidth=1.0)
     plt.plot(Time_R, Power,  label="jet power",     linewidth=1.0)
-    plt.ylim(1e41, 1e51)
+    plt.ylim(2e42, 4e47)
     plt.xlim(0.0, 10.0)
     plt.yscale("log")
     plt.xlabel("time (Gyr)")

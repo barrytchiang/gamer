@@ -172,4 +172,4 @@ if __name__ == "__main__":
 
     # Save S(r) to file
     data_to_save = np.column_stack((Time, tcool, deltaT))
-    np.savetxt( perfix+'data_tcool_deltaT.txt', data_to_save, delimiter='\t', header='# Time\ttcool\tdeltaT', comments='' )
+    np.savetxt( prefix+'data_tcool_deltaT.txt', data_to_save, delimiter='\t', header='# Time\ttcool\tdeltaT', comments='' )
