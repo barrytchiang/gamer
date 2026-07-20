@@ -249,6 +249,7 @@ void Init_TestProb();
 void Init_ByFile();
 void Init_UniformGrid( const int lv, const bool FindHomePatchForPar );
 void Init_Field();
+void Init_SubGrid_Fields();
 FieldIdx_t AddField( const char *InputLabel, const FixUpFlux_t FixUp_Flux, const FixUpRestrict_t FixUp_Restrict,
                      const FloorPassive_t Floor, const NormPassive_t Norm, const IntFracPassive_t IntFrac );
 FieldIdx_t GetFieldIndex( const char *InputLabel, const Check_t Check );
@@ -352,7 +353,7 @@ void Output_DumpData_Part( const OptOutputPart_t Part, const bool BaseOnly, cons
                            const double z, const char *FileName );
 void Output_DumpData_Total( const char *FileName );
 #ifdef SUPPORT_HDF5
-void Output_DumpData_Total_HDF5( const char *FileName, const bool SkipPar=false, const int SubGridMode=1 );
+void Output_DumpData_Total_HDF5( const char *FileName, const bool SkipPar=false, const bool SubGridMode=false );
 #endif
 void Output_DumpManually( int &Dump_global );
 void Output_FlagMap( const int lv, const int xyz, const char *comment );

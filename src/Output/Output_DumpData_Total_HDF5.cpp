@@ -288,10 +288,14 @@ Procedure for outputting new variables:
 //                                             DT__GRACKLE_COOLING, OPT__FLAG_COOLING_LEN, FlagTable_CoolingLen
 //                2508 : 2026/03/26 --> output particle unique id
 //-------------------------------------------------------------------------------------------------------
-void Output_DumpData_Total_HDF5( const char *FileName, const bool SkipPar, const int SubGridMode )
+void Output_DumpData_Total_HDF5( const char *FileName, const bool SkipPar, const bool SubGridMode )
 {
 
-   if ( MPI_Rank == 0 )    Aux_Message( stdout, "%s (DumpID = %d)     ...\n", __FUNCTION__, DumpID );
+   if ( MPI_Rank == 0 )
+   {
+      if ( SubGridMode )   Aux_Message( stdout, "%s (SubDumpID = %d)  ...\n", __FUNCTION__, SubDumpID );
+      else                 Aux_Message( stdout, "%s (DumpID = %d)     ...\n", __FUNCTION__, DumpID    );
+   }
 
 
 // check the synchronization
@@ -328,17 +332,9 @@ void Output_DumpData_Total_HDF5( const char *FileName, const bool SkipPar, const
       }
 #     endif
 
-//    field masking for grid sub-dumps (SubGridMode 2-4); SubGridMode 0/1 writes all fields
+//    field masking for grid sub-dumps; field list controlled by SubGridField[] (Input__Sub_Grid)
 #     if ( MODEL == HYDRO )
-      if ( SubGridMode >= 2 )
-      {
-         const char *lbl    = FieldLabel[v];
-         bool        include = false;
-         if      ( SubGridMode == 2 )  include = ( strcmp(  lbl, "Dens" ) == 0 );
-         else if ( SubGridMode == 3 )  include = ( strncmp( lbl, "Mom",  3 ) == 0 );
-         else if ( SubGridMode == 4 )  include = ( strcmp(  lbl, "Engy" ) == 0 );
-         if ( !include ) { NCompFluSkip += 1; continue; }
-      }
+      if ( SubGridMode  &&  !SubGridField[v] ) { NCompFluSkip += 1; continue; }
 #     endif
 
       FluSrcIdx[NFluidOut] = v;

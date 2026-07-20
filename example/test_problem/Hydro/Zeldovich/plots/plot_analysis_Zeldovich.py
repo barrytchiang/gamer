@@ -136,7 +136,7 @@ elif (Gas_Par_Setup == 2): # particle-only setup
 for ds in ts.piter():
     # load data frame cosmological parameters
     DumpID_now       = ds.parameters["DumpID"]
-    FileID_now       = get_file_id( DumpID_now )               # SubDumpID for Zeldovich_* files (= DumpID when OPT__OUTPUT_SUBDIV < 0)
+    FileID_now       = get_file_id( DumpID_now )   # SubDumpID for Zeldovich_* files (= DumpID when OPT__OUTPUT_SUBDIV < 0)
     current_time_a   = ds.scale_factor                          # scale factor
     current_time_z   = (1.0/float(current_time_a)) - 1.0        # redshift
 

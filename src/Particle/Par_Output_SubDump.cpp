@@ -2,11 +2,10 @@
 
 #ifdef PARTICLE
 
-// forward declarations
-#ifdef TRACER
-static void Par_Output_SubTracer_Internal( const char *FileName, const int SubDumpID );
+// forward declaration
+#ifdef SUPPORT_HDF5
+static void Par_Output_SubDump_HDF5( const char *FileName, const bool IsTracer, const int SubDumpID );
 #endif
-static void Par_Output_SubParticle_Internal( const char *FileName, const int SubDumpID );
 
 
 //-------------------------------------------------------------------------------------------------------
@@ -32,7 +31,7 @@ void Par_Output_SubTracer( const int SubDumpID )
 
    if ( MPI_Rank == 0 )   Aux_Message( stdout, "   Writing \"%s\" ...\n", FileName );
 
-   Par_Output_SubTracer_Internal( FileName, SubDumpID );
+   Par_Output_SubDump_HDF5( FileName, true, SubDumpID );
 
    if ( MPI_Rank == 0 )   Aux_Message( stdout, "   Writing \"%s\" ... done\n", FileName );
 
@@ -58,7 +57,7 @@ void Par_Output_SubParticle( const int SubDumpID )
 
    if ( MPI_Rank == 0 )   Aux_Message( stdout, "   Writing \"%s\" ...\n", FileName );
 
-   Par_Output_SubParticle_Internal( FileName, SubDumpID );
+   Par_Output_SubDump_HDF5( FileName, false, SubDumpID );
 
    if ( MPI_Rank == 0 )   Aux_Message( stdout, "   Writing \"%s\" ... done\n", FileName );
 
@@ -244,18 +243,6 @@ static void Par_Output_SubDump_HDF5( const char *FileName, const bool IsTracer, 
 
 } // FUNCTION : Par_Output_SubDump_HDF5
 
-
-#ifdef TRACER
-static void Par_Output_SubTracer_Internal( const char *FileName, const int SubDumpID )
-{
-   Par_Output_SubDump_HDF5( FileName, true, SubDumpID );
-}
-#endif
-
-static void Par_Output_SubParticle_Internal( const char *FileName, const int SubDumpID )
-{
-   Par_Output_SubDump_HDF5( FileName, false, SubDumpID );
-}
 
 #endif // #ifdef SUPPORT_HDF5
 

@@ -420,10 +420,10 @@ OPT__OUTPUT_GRACKLE_TCOOL     0           # output the cooling time calculated b
 OPT__OUTPUT_USER_FIELD        0           # output user-defined derived fields [0] -> edit "Flu_DerivedField_User.cpp"
 OPT__OUTPUT_MODE              1           # (1=const step, 2=const dt, 3=dump table) -> edit "Input__DumpTable" for 3
 OPT__OUTPUT_SUBDIV           -1           # sub-cadence gate: <0=off; N>=1: sub-dumps between/at main dumps [-1]
-                                          # for OPT__OUTPUT_MODE == 1, sub-dump every N steps after each main dump (e.g., N=3, const_step=7: sub-dumps at steps 0, 3, 6, 7, 10, 13, 14,...)
+                                          # for OPT__OUTPUT_MODE == 1, sub-dump every N steps after each main dump 
+                                          # (e.g., N=3, const_step=7: sub-dumps at steps 0, 3, 6, 7, 10, 13, 14,...)
                                           # for OPT__OUTPUT_MODE == 2/3, sub-dump over evenly spaced N-1 intermediate substeps
-OPT__OUTPUT_SUBDIV_GRID       0           # grid-only yt-compatible HDF5 at sub-cadence [0]
-                                          # (0=off, 1=all native fluid fields, 2=Dens only, 3=MomX+MomY+MomZ only, 4=Engy only)
+OPT__OUTPUT_SUBDIV_GRID       0           # grid-only yt-compatible HDF5 at sub-cadence (0=off, 1=on with field list set by Input__Sub_Grid) [0]
 OPT__OUTPUT_SUBDIV_PAR        0           # massive-particle HDF5 (SubParticle_*) at sub-cadence (0=off, 1=on, 2=on with float32) [0]
 OPT__OUTPUT_SUBDIV_TRACER     0           # tracer-particle HDF5 (SubTracer_*) at sub-cadence (0=off, 1=on, 2=on with float32) [0]
 OPT__OUTPUT_SUBDIV_USER       0           # fire Output_User_Ptr() at sub-cadence (requires OPT__OUTPUT_USER=1) [0]

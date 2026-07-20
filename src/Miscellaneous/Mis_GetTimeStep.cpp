@@ -156,7 +156,7 @@ double Mis_GetTimeStep( const int lv, const double dTime_SyncFaLv, const double 
    }
 
 // 1.4.5 CRITERION : match the time of the next sub-dump (only needed for intermediate sub-dumps, i.e., OPT__OUTPUT_SUBDIV>=2)
-   const bool SubDumpByTime = ( OPT__OUTPUT_SUBDIV >= 2  &&  OPT__OUTPUT_USER  &&  DumpByTime );
+   const bool SubDumpByTime = ( OPT__OUTPUT_SUBDIV >= 2  &&  DumpByTime );
 
    if ( SubDumpByTime )
    {

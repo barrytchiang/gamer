@@ -101,8 +101,19 @@ void Output_DumpData( const int Stage )
 
       } // switch ( OPT__OUTPUT_MODE )
 
-//    for restarts: SubDumpTime and SubDumpID are recovered from HDF5 in Init_ByRestart_HDF5;
-//    for fresh starts: SubDumpTime is set after the Stage==0 main dump fires (see below)
+//    initialize sub-dump cadence (also covers the restart case where Stage==0 exits early
+//    below before the main-dump block can set SubInterval/SubDumpTime)
+      if ( OPT__OUTPUT_SUBDIV >= 2 )
+      {
+         LastMainDumpStep = Step;
+
+         if ( OPT__OUTPUT_MODE == OUTPUT_CONST_DT  ||  OPT__OUTPUT_MODE == OUTPUT_USE_TABLE )
+         {
+            SubInterval = ( DumpTime - Time[0] ) / OPT__OUTPUT_SUBDIV;
+            SubDumpTime = Time[0] + SubInterval;
+         }
+      }
+
    } // if ( Stage == 0 )
 
 
@@ -284,6 +295,58 @@ void Output_DumpData( const int Stage )
 //    perform user-specified work before dumping data
       if ( Output_UserWorkBeforeOutput_Ptr != NULL )  Output_UserWorkBeforeOutput_Ptr();
 
+//    advance DumpTime and SubDumpTime before writing the HDF5 so that the stored
+//    SubDumpTime is already the next sub-dump target; without this, restarting from
+//    a main-dump snapshot gives SubDumpTime == Time[0] → dTime == 0 → crash
+      if ( OutputData )
+      {
+         if ( OPT__OUTPUT_MODE == OUTPUT_CONST_DT  )  DumpTime = round( Time[0]/OUTPUT_DT + 1.0 )*OUTPUT_DT;
+         if ( OPT__OUTPUT_MODE == OUTPUT_USE_TABLE )  DumpTime = DumpTable[ ++DumpTableID ];
+
+         if ( OPT__OUTPUT_SUBDIV >= 2 )
+         {
+            LastMainDumpStep = Step;
+
+            if ( OPT__OUTPUT_MODE == OUTPUT_CONST_DT || OPT__OUTPUT_MODE == OUTPUT_USE_TABLE )
+            {
+               SubInterval = ( DumpTime - Time[0] ) / OPT__OUTPUT_SUBDIV;
+               SubDumpTime = Time[0] + SubInterval;
+            }
+         }
+      }
+
+//    fire sub-cadence outputs at N=1 (or at every main dump when SUBDIV >= 1) BEFORE writing
+//    the main HDF5 snapshot so that SubDumpID is already incremented when the snapshot is written;
+//    without this, restarting from a main-dump snapshot restores the pre-increment SubDumpID and
+//    the first sub-dump after restart collides (same filename) with the co-dump at the main dump
+      const bool AnySubDiv = OPT__OUTPUT_SUBDIV_GRID  ||  OPT__OUTPUT_SUBDIV_PAR  ||
+                             OPT__OUTPUT_SUBDIV_TRACER  ||  OPT__OUTPUT_SUBDIV_USER;
+      if ( AnySubDiv  &&  OPT__OUTPUT_SUBDIV >= 1 )
+      {
+         char SubFileName[2*MAX_STRING];
+#        ifdef SUPPORT_HDF5
+         if ( OPT__OUTPUT_SUBDIV_GRID )
+         {
+            sprintf( SubFileName, "%s/SubGrid_%06d", OUTPUT_DIR, SubDumpID );
+            Output_DumpData_Total_HDF5( SubFileName, true, true );
+         }
+#        endif
+#        ifdef PARTICLE
+         if ( OPT__OUTPUT_SUBDIV_PAR )     Par_Output_SubParticle( SubDumpID );
+#        ifdef TRACER
+         if ( OPT__OUTPUT_SUBDIV_TRACER )  Par_Output_SubTracer( SubDumpID );
+#        endif
+#        endif
+         if ( OPT__OUTPUT_SUBDIV_USER )
+         {
+            if ( Output_User_Ptr != NULL )   Output_User_Ptr();
+            else
+               Aux_Error( ERROR_INFO, "Output_User_Ptr == NULL for OPT__OUTPUT_SUBDIV_USER !!\n" );
+         }
+         Write_SubDumpRecord();
+         SubDumpID++;
+      }
+
 //    start dumping data
       if ( OPT__OUTPUT_TOTAL )            Output_DumpData_Total( FileName_Total );
       if ( OPT__OUTPUT_PART  )            Output_DumpData_Part( OPT__OUTPUT_PART, OPT__OUTPUT_BASE, OUTPUT_PART_X,
@@ -304,54 +367,7 @@ void Output_DumpData( const int Stage )
 
       Write_DumpRecord();
 
-//    fire sub-cadence outputs at N=1 (or at every main dump when SUBDIV >= 1)
-      const bool AnySubDiv = OPT__OUTPUT_SUBDIV_GRID > 0  ||  OPT__OUTPUT_SUBDIV_PAR  ||
-                             OPT__OUTPUT_SUBDIV_TRACER  ||  OPT__OUTPUT_SUBDIV_USER;
-      if ( AnySubDiv  &&  OPT__OUTPUT_SUBDIV >= 1 )
-      {
-         char SubFileName[2*MAX_STRING];
-#        ifdef SUPPORT_HDF5
-         if ( OPT__OUTPUT_SUBDIV_GRID > 0 )
-         {
-            sprintf( SubFileName, "%s/SubGrid_%06d", OUTPUT_DIR, SubDumpID );
-            Output_DumpData_Total_HDF5( SubFileName, true, OPT__OUTPUT_SUBDIV_GRID );
-         }
-#        endif
-#        ifdef PARTICLE
-         if ( OPT__OUTPUT_SUBDIV_PAR )     Par_Output_SubParticle( SubDumpID );
-#        ifdef TRACER
-         if ( OPT__OUTPUT_SUBDIV_TRACER )  Par_Output_SubTracer( SubDumpID );
-#        endif
-#        endif
-         if ( OPT__OUTPUT_SUBDIV_USER )
-         {
-            if ( Output_User_Ptr != NULL )   Output_User_Ptr();
-            else
-               Aux_Error( ERROR_INFO, "Output_User_Ptr == NULL for OPT__OUTPUT_SUBDIV_USER !!\n" );
-         }
-         Write_SubDumpRecord();
-         SubDumpID++;
-      }
-
       DumpID ++;
-
-      if ( OutputData )
-      {
-         if ( OPT__OUTPUT_MODE == OUTPUT_CONST_DT  )  DumpTime = round( Time[0]/OUTPUT_DT + 1.0 )*OUTPUT_DT;
-         if ( OPT__OUTPUT_MODE == OUTPUT_USE_TABLE )  DumpTime = DumpTable[ ++DumpTableID ];
-
-//       initialize sub-dump cadence for the interval starting at this main dump
-         if ( OPT__OUTPUT_SUBDIV >= 2 )
-         {
-            LastMainDumpStep = Step;
-
-            if ( OPT__OUTPUT_MODE == OUTPUT_CONST_DT || OPT__OUTPUT_MODE == OUTPUT_USE_TABLE )
-            {
-               SubInterval = ( DumpTime - Time[0] ) / OPT__OUTPUT_SUBDIV;
-               SubDumpTime = Time[0] + SubInterval;
-            }
-         }
-      }
 
       PreviousDumpStep = Step;
    } // if ( OutputData || OutputData_RunTime )
@@ -359,7 +375,7 @@ void Output_DumpData( const int Stage )
 
 // sub-dump gate: fire individual sub-cadence outputs between main dumps
    {
-      const bool AnySubDiv2 = OPT__OUTPUT_SUBDIV_GRID > 0  ||  OPT__OUTPUT_SUBDIV_PAR  ||
+      const bool AnySubDiv2 = OPT__OUTPUT_SUBDIV_GRID  ||  OPT__OUTPUT_SUBDIV_PAR  ||
                               OPT__OUTPUT_SUBDIV_TRACER  ||  OPT__OUTPUT_SUBDIV_USER;
       if ( OPT__OUTPUT_SUBDIV >= 2  &&  AnySubDiv2  &&  !OutputData  &&  !OutputData_RunTime  &&  !OutputData_Walltime )
       {
@@ -387,10 +403,10 @@ void Output_DumpData( const int Stage )
          {
             char SubFileName[2*MAX_STRING];
 #           ifdef SUPPORT_HDF5
-            if ( OPT__OUTPUT_SUBDIV_GRID > 0 )
+            if ( OPT__OUTPUT_SUBDIV_GRID )
             {
                sprintf( SubFileName, "%s/SubGrid_%06d", OUTPUT_DIR, SubDumpID );
-               Output_DumpData_Total_HDF5( SubFileName, true, OPT__OUTPUT_SUBDIV_GRID );
+               Output_DumpData_Total_HDF5( SubFileName, true, true );
             }
 #           endif
 #           ifdef PARTICLE
