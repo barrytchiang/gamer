@@ -145,7 +145,7 @@ void Hydro_RestoreEint_Check( const int lv, const int FluSg, const int MagSg )
 //       restore the original internal energy if needed
          if ( CheckFailed_ThisCell )
          {
-// 	    recompute Etot directly from the backed-up internal energy
+//          recompute Etot directly from the backed-up internal energy
 //          --> avoid computing the difference between the backed-up and new internal energy,
 //              since the latter may be non-finite
             const real EtotNew = Hydro_ConEint2Etot( fluid[DENS], fluid[MOMX], fluid[MOMY], fluid[MOMZ],
