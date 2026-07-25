@@ -181,6 +181,11 @@ void Hydro_RestoreEint_Check( const int lv, const int FluSg, const int MagSg )
       Buf_GetBufferData( lv, FluSg, NULL_INT, NULL_INT, DATA_GENERAL, _ENGY, _NONE, Flu_ParaBuf, USELB_YES );
 #  endif
 
+
+// print a debug message
+   if ( CheckFailed_AnyCell  &&  OPT__VERBOSE  &&  MPI_Rank == 0 )
+      Aux_Message( stderr, "\nWARNING : unphysical internal energy detected in %s() !!\n", __FUNCTION__ );
+
 } // FUNCTION : Hydro_RestoreEint_Check
 
 
