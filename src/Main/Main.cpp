@@ -231,9 +231,11 @@ bool                 FFTW3_Double_OMP_Enabled, FFTW3_Single_OMP_Enabled;
 #ifdef PARTICLE
 double               DT__PARVEL, DT__PARVEL_MAX, DT__PARACC;
 bool                 OPT__CK_PARTICLE, OPT__FLAG_NPAR_CELL, OPT__FLAG_PAR_MASS_CELL, OPT__FREEZE_PAR, OPT__OUTPUT_PAR_MESH, OPT__PAR_INIT_CHECK;
+bool                 OPT__FLAG_PAR_TARGET_SIB;
 int                  OPT__OUTPUT_PAR_MODE, OPT__PARTICLE_COUNT, OPT__FLAG_NPAR_PATCH, PAR_IC_FLOAT8, PAR_IC_INT8, FlagTable_NParPatch[NLEVEL-1], FlagTable_NParCell[NLEVEL-1];
 double               FlagTable_ParMassCell[NLEVEL-1];
 ParOutputDens_t      OPT__OUTPUT_PAR_DENS;
+FlagParTarget_t      OPT__FLAG_PAR_TARGET;
 #endif
 
 // (2-6) yt inline analysis
@@ -714,10 +716,9 @@ int main( int argc, char *argv[] )
       if ( OPT__CORR_AFTER_ALL_SYNC == CORR_AFTER_SYNC_EVERY_STEP )
       TIMING_FUNC(   Flu_CorrAfterAllSync(),          Timer_Main[6],   TIMER_ON   );
 
-//    it may be unnecessary to call `MHD_SameInterfaceB()` here, since we already call it every sub-step
-//    in EvolveLevel() after the fluid solver (unless something other than the fluid solver can also introduce
-//    inconsistencies in the B field, such as fix-up operations?).
-#     if ( MODEL == HYDRO  &&  defined MHD )
+//    it may be unnecessary to call MHD_SameInterfaceB() here, since we already call it every sub-step
+//    in EvolveLevel() after the fluid solver and fix-up operations
+#     ifdef MHD
       if ( OPT__SAME_INTERFACE_B == SAME_INTERFACE_B_YES )
       {
          if ( OPT__VERBOSE  &&  MPI_Rank == 0 )

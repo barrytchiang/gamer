@@ -299,6 +299,12 @@ struct SymConst_t
    int    InterpMask;
    int    FB_SepFluOut;
 
+#  if ( MODEL == HYDRO )
+   int    ExtraEoSCheck;
+#  endif
+   int    CheckUnphyRnd;
+   double CheckUnphyRndFactor;
+
 
 #  if   ( MODEL == HYDRO )
    int    Flu_BlockSize_x;
@@ -328,7 +334,7 @@ struct SymConst_t
    int    EoSNAuxMax;
    int    EoSNTableMax;
 
-#  elif  ( MODEL == ELBDM )
+#  elif ( MODEL == ELBDM )
    int    Flu_BlockSize_x;
    int    Flu_BlockSize_y;
 #  if ( ELBDM_SCHEME == ELBDM_HYBRID )
@@ -428,6 +434,7 @@ struct InputPara_t
 // particle
 #  ifdef PARTICLE
    int    Par_Init;
+   int    Par_FlagInit;
    int    Par_ICFormat;
    double Par_ICMass;
    int    Par_ICType;
@@ -565,6 +572,8 @@ struct InputPara_t
    int    Opt__Flag_NParPatch;
    int    Opt__Flag_NParCell;
    int    Opt__Flag_ParMassCell;
+   int    Opt__Flag_ParTarget;
+   int    Opt__Flag_ParTargetSib;
 #  endif
    int    Opt__NoFlagNearBoundary;
    int    Opt__PatchCount;
