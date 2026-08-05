@@ -288,7 +288,7 @@ void LoadInputTestProb( const LoadParaMode_t load_mode, ReadPara_t *ReadPara, HD
       LOAD_PARA( load_mode, Merger_Coll_VelX_name,  &Merger_Coll_Vel[c][0],   -1.0,                NoMin_double,  NoMax_double   );
       LOAD_PARA( load_mode, Merger_Coll_VelY_name,  &Merger_Coll_Vel[c][1],   -1.0,                NoMin_double,  NoMax_double   );
       if ( AGN_feedback )
-      {	
+      {
          LOAD_PARA( load_mode, CM_BH_Mass_name,        &CM_BH_Mass[c],           -1.0,                Eps_double,    NoMax_double   );
          LOAD_PARA( load_mode, Jet_HalfHeight_name,    &Jet_HalfHeight[c],       -1.0,                Eps_double,    NoMax_double   );
          LOAD_PARA( load_mode, Jet_Radius_name,        &Jet_Radius[c],           -1.0,                Eps_double,    NoMax_double   );
@@ -296,7 +296,7 @@ void LoadInputTestProb( const LoadParaMode_t load_mode, ReadPara_t *ReadPara, HD
    }
    LOAD_PARA( load_mode, "Merger_Coll_UseMetals",   &Merger_Coll_UseMetals,    true,               Useless_bool,  Useless_bool   );
    if ( AGN_feedback )
-   {  
+   {
       LOAD_PARA( load_mode, "Merger_Coll_LabelCenter", &Merger_Coll_LabelCenter,  true,               Useless_bool,  Useless_bool   );
       LOAD_PARA( load_mode, "R_acc",                   &R_acc,                   -1.0,                NoMin_double,  NoMax_double   );
       LOAD_PARA( load_mode, "R_dep",                   &R_dep,                   -1.0,                NoMin_double,  NoMax_double   );
@@ -311,7 +311,7 @@ void LoadInputTestProb( const LoadParaMode_t load_mode, ReadPara_t *ReadPara, HD
       LOAD_PARA( load_mode, "JetDirection_file",        JetDirection_file,        "JetDirection.txt", Useless_str,   Useless_str    );
       LOAD_PARA( load_mode, "fixBH",                   &fixBH,                    false,              Useless_bool,  Useless_bool   );
    }
-   
+
 } // FUNCTION : LoadInputTestProb
 
 
@@ -356,12 +356,12 @@ void SetParameter()
    Merger_Coll_Pos   = new double [ Merger_Coll_NumHalos ][ 3 ];
    Merger_Coll_Vel   = new double [ Merger_Coll_NumHalos ][ 3 ];
    if ( AGN_feedback )
-   {  
+   {
       Jet_HalfHeight    = new double [ Merger_Coll_NumHalos ];
       Jet_Radius        = new double [ Merger_Coll_NumHalos ];
       CM_BH_Mass        = new double [ Merger_Coll_NumHalos ];
    }
-   
+
 // (1-1-3) load the rest of the cluster parameters
    ReadPara = new ReadPara_t;
 
@@ -385,12 +385,12 @@ void SetParameter()
       Merger_Coll_Vel[c][1] *= (Const_km/Const_s) / UNIT_V;
    }
 
-// setup color fields   
+// setup color fields
    ColorFieldsIdx = new FieldIdx_t [ Merger_Coll_NumHalos ];
    for (int c=0; c<Merger_Coll_NumHalos; c++)   ColorFieldsIdx[c] = Idx_Undefined;
-   
+
    if ( AGN_feedback )
-   {  
+   {
 //    set the correct parameters when fixing the BH
       if ( Merger_Coll_NumHalos != 1  &&  fixBH )
       {
@@ -414,14 +414,14 @@ void SetParameter()
          Jet_HalfHeight[c]    *= Const_kpc / UNIT_L;
          Jet_Radius    [c]    *= Const_kpc / UNIT_L;
       }
-      
+
 //    Assign each BH the index of the halo it belongs to. This index will
 //    change if the BHs merge
       CM_ClusterIdx_Cur = new long_par [ Merger_Coll_NumHalos ];
       for (int c=0; c<Merger_Coll_NumHalos; c++)   CM_ClusterIdx_Cur[c] = c;
-      
+
    } // if ( AGN_feedback )
-	 
+
    if ( OPT__INIT != INIT_BY_RESTART )
    {
       Table_R     = new double* [ Merger_Coll_NumHalos ];
@@ -492,14 +492,14 @@ void SetParameter()
       }
 
       if ( AGN_feedback )
-      {	
+      {
 //       set the number of black holes to be the same as the number of clusters initially
 //       the number of black holes will decrease if they merge
          Merger_Coll_NumBHs = Merger_Coll_NumHalos;
 
 //       allocate BH-related arrays
          AllocateBHVarArray();
-         
+
 //       initialize cluster centers and BH attributes
          for (int c=0; c<Merger_Coll_NumBHs; c++)
          for (int d=0; d<3; d++)
@@ -507,9 +507,9 @@ void SetParameter()
             CM_ClusterCen[c][d] = Merger_Coll_Pos[c][d];
             CM_BH_Pos    [c][d] = Merger_Coll_Pos[c][d];
             CM_BH_Vel    [c][d] = Merger_Coll_Vel[c][d];
-         }         
+         }
       }
-      
+
 //    (3) determine particle number
       NPar_EachCluster = new long [ Merger_Coll_NumHalos ];
       for (int c=0; c<Merger_Coll_NumHalos; c++)
@@ -636,14 +636,14 @@ void SetParameter()
 
 //    check if the accretion region is larger than the jet cylinder
       if ( AGN_feedback )
-      {	
+      {
          for (int c=0; c<Merger_Coll_NumHalos; c++)
          {
             if ( R_acc < Jet_HalfHeight[c] )   Aux_Message( stderr, "WARNING : R_acc (%14.8e) is less than Jet_HalfHeight%d (%14.8e) !!\n", R_acc, c+1, Jet_HalfHeight[c] );
             if ( R_acc < Jet_Radius    [c] )   Aux_Message( stderr, "WARNING : R_acc (%14.8e) is less than Jet_Radius%d (%14.8e) !!\n",     R_acc, c+1, Jet_Radius[c] );
          }
       }
-      
+
    } // if ( MPI_Rank == 0 )
 
    if ( MPI_Rank == 0 )    Aux_Message( stdout, "   Setting runtime parameters ... done\n" );
@@ -764,7 +764,7 @@ void Output_HDF5_User_ClusterMerger( HDF5_Output_t *HDF5_OutUser )
 {
 
    if ( !AGN_feedback ) return;
-  
+
    HDF5_OutUser->Add( "Merger_Coll_NumBHs", &Merger_Coll_NumBHs );
    for (int c=0; c<Merger_Coll_NumBHs; c++)
    {
@@ -842,9 +842,9 @@ void End_ClusterMerger()
    delete [] Merger_Coll_Vel;
 
    delete [] ColorFieldsIdx;
-   
+
    if ( AGN_feedback )
-   {  
+   {
       delete [] Jet_HalfHeight;
       delete [] Jet_Radius;
 
@@ -900,7 +900,7 @@ void End_ClusterMerger()
       delete [] M_inj_exp;
 
    } // if ( AGN_feedback )
-   
+
 } // FUNCTION : End_ClusterMerger
 
 
@@ -960,7 +960,7 @@ void Init_TestProb_Hydro_ClusterMerger()
    Init_Function_BField_User_Ptr = SetBFieldIC;
 #  endif
 #  ifdef SUPPORT_HDF5
-   if ( AGN_feedback ) 
+   if ( AGN_feedback )
    Output_HDF5_UserPara_Ptr       = Output_HDF5_User_ClusterMerger;
    Output_HDF5_InputTest_Ptr      = LoadInputTestProb;
 #  endif

@@ -49,7 +49,7 @@ void Validate()
 #  ifdef MHD
    Aux_Error( ERROR_INFO, "MHD must be disabled !!\n" );
 #  endif
-   
+
    if ( ! SrcTerms.ExactCooling )   Aux_Error( ERROR_INFO, "SRC_EXACTCOOLING must be enabled !!\n" );
 
 // warnings

@@ -1092,8 +1092,8 @@ void SetJetDirection( const double TimeNew, const int lv, const int FluSg )
          }
          break;
       case 2: // import from table
-	 {
-	     const double Time_period      = CM_Jet_Time_table[JetDirection_NBin-1];
+         {
+             const double Time_period      = CM_Jet_Time_table[JetDirection_NBin-1];
              const double Time_interpolate = fmod( TimeNew, Time_period );
              for (int c=0; c<Merger_Coll_NumBHs; c++)
              {
@@ -1104,14 +1104,14 @@ void SetJetDirection( const double TimeNew, const int lv, const int FluSg )
                 CM_Jet_Vec[c][1] = sin(theta)*cos(phi);
                 CM_Jet_Vec[c][2] = sin(theta)*sin(phi);
              }
-	 }
+         }
          break;
       case 3: // align with angular momentum
-	 {
-	    // angular momentum inside the accretion radius, per rank and total
+         {
+            // angular momentum inside the accretion radius, per rank and total
             double ang_mom[Merger_Coll_NumBHs][3];
             double ang_mom_sum[Merger_Coll_NumBHs][3];
-	    const double dh = amr->dh[lv];
+            const double dh = amr->dh[lv];
             const double dv = CUBE(dh);
 
             for (int c=0; c<Merger_Coll_NumBHs; c++)
@@ -1149,7 +1149,7 @@ void SetJetDirection( const double TimeNew, const int lv, const int FluSg )
 
                for (int d=0; d<3; d++)   CM_Jet_Vec[c][d] = ang_mom_sum[c][d] / ang_mom_norm;
             } // for (int c=0; c<Merger_Coll_NumBHs; c++)
-	 }
+         }
          break;
       default:
          Aux_Error( ERROR_INFO, "Unsupported JetDirection_case %d [1/2/3] !!\n", JetDirection_case );
