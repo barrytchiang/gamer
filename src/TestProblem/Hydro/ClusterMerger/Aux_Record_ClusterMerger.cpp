@@ -85,7 +85,7 @@ void Aux_Record_ClusterMerger()
          fprintf( File_User, "# E_Inj_err        : The relative error of the total injected energy\n" );
          fprintf( File_User, "# Ek_Inj           : Total injected kinetic energy in the feedback region [erg]\n" );
          fprintf( File_User, "# Et_Inj           : Total injected thermal energy in the feedback region [erg]\n" );
-         fprintf( File_User, "# PowerInj         : Toral injected power in the feedback region [cgs]\n" );
+         fprintf( File_User, "# PowerInj         : Total injected power in the feedback region [cgs]\n" );
          fprintf( File_User, "# MInjexp          : The expected amount of injected gas mass in the feedback region [Msun]\n" );
          fprintf( File_User, "# MassInj          : Total mass change in the feedback region [Msun]\n" );
          fprintf( File_User, "# M_Inj_err        : The relative error of the total injected mass\n" );
