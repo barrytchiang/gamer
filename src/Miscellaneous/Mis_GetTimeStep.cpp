@@ -244,7 +244,7 @@ double Mis_GetTimeStep( const int lv, const double dTime_SyncFaLv, const double 
       dTime[NdTime] = dTime_dt * Grackle_GetTimeStep_CoolingTime( lv );
       sprintf( dTime_Name[NdTime++], "%s", "Grackle_TCool" );
 
-      //    when fluid is freezed, disable this criterion by resetting it to a huge value
+//    when fluid is frozen, disable this criterion by resetting it to a huge value
       if ( OPT__FREEZE_FLUID  &&  ! OPT__UNFREEZE_GRACKLE )   dTime[NdTime-1] = HUGE_NUMBER;
    }
 #  endif

@@ -29,9 +29,7 @@ extern double (*CM_ClusterCen)[3];
 //-------------------------------------------------------------------------------------------------------
 bool Flag_ClusterMerger( const int i, const int j, const int k, const int lv, const int PID, const double *Threshold )
 {
-
-   static bool FirstTime = true;
-
+   
    const double dh     = amr->dh[lv];
    const double Pos[3] = { amr->patch[0][lv][PID]->EdgeL[0] + (i+0.5)*dh,
                            amr->patch[0][lv][PID]->EdgeL[1] + (j+0.5)*dh,
@@ -48,15 +46,6 @@ bool Flag_ClusterMerger( const int i, const int j, const int k, const int lv, co
          return Flag;
       } // if ( R_SQR <= SQR(25*R_acc)  &&  R_acc/dh <= Threshold[0] )
    } // for (int c=0; c<Merger_Coll_NumBHs; c++)
-
-   if ( FirstTime )
-   {
-      const double dh_max = amr->dh[MAX_LEVEL];
-      if ( R_acc/dh_max <= Threshold[0]  &&  MPI_Rank == 0 )
-         Aux_Message( stderr, "WARNING : MAX_LEVEL (%d) is less than the desired refinement level set in Input__Flag_User (R_acc = %13.7e, dh_max = %13.7e, Threshold[0] = %13.7e) !!\n", MAX_LEVEL, R_acc, dh_max, Threshold[0] );
-
-      FirstTime = false;
-   } // if ( FirstTime )
 
    return Flag;
 

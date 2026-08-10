@@ -61,7 +61,8 @@ extern double    *M_inj, *P_inj, *E_inj;                   // the injected densi
 extern double    *normalize_const;                         // the exact normalization constant
 
 extern long_par  *CM_ClusterIdx_Cur;                       // array to keep track of which cluster the black hole
-                                                           // particles belong to
+                                                           // particles belong to. When and if the two black holes
+                                                           // merge, BH 0 belongs to both clusters.
 
 static bool       if_overlap = false;                      // variable to keep track if the jet injection regions
                                                            // are overlapping
@@ -347,7 +348,7 @@ void Flu_ResetByUser_API_ClusterMerger( const int lv, const int FluSg, const int
 //    merge the two BHs if they are located within R_acc, and the relative velocity is small enough
       if ( AbsRelPos < R_acc  &&  AbsRelVel < 3*escape_vel )
       {
-         static int        merge_index = 0;                         // record BH 1 merge BH 2 / BH 2 merge BH 1
+         int merge_index = 0;                         // record BH 1 merge BH 2 / BH 2 merge BH 1
          Merger_Coll_NumBHs -= 1;
          if ( CM_BH_Mass[0] >= CM_BH_Mass[1] )   merge_index = 1;   // record BH 1 merge BH 2 / BH 2 merge BH 1
          else                                    merge_index = 2;
@@ -559,6 +560,7 @@ void Flu_ResetByUser_API_ClusterMerger( const int lv, const int FluSg, const int
          {
             double RelVelSqr = 0.0;  // the relative velocity between BH and gas
             for (int d=0; d<3; d++)  gas_vel_hot_sum[c][d] = gas_mom_hot_sum[c][d] / rho_hot_sum[c];
+//###ISSUE: Explore using V_cyl_exact_sum[c] as the volume
             rho_hot_sum[c] /= ( 4.0 / 3.0 * M_PI * CUBE(R_acc) );
             Cs_hot_sum[c]  /= (double)num_hot_sum[c];
             for (int d=0; d<3; d++)  RelVelSqr += SQR( CM_BH_Vel[c][d] - gas_vel_hot_sum[c][d] );
@@ -753,12 +755,12 @@ void GetClusterCenter( const int lv, const bool AdjustPos, const bool AdjustVel,
       const double dis_exp  = 1e-6*Const_Mpc/UNIT_L; // to check if the output BH positions of each calculation are close enough
       bool   converged      = false; // if the BH positions are close enough, then complete the calculation
       int    counter        = 0;     // how many times the calculation is performed (minimum: 2, maximum: 10)
-      const int max_counter = 10;    // The maximum number of calculations allow to find the center
+      const int max_counter = 10;    // The maximum number of calculations allowed to find the center
       double Cen_new_pre[Merger_Coll_NumBHs][3];
 
-//    ###OPTIMIZATION: This loop could be optimized by applying the convergence check to each
-//    cluster separately to avoid redundant work. Currently, the check is performed on both
-//    clusters until both are converged.
+//###OPTIMIZATION: This loop could be optimized by applying the convergence check to each
+//cluster separately to avoid redundant work. Currently, the check is performed on both
+//clusters until both are converged.
       while ( converged == false  &&  counter <= max_counter )
       {
          for (int c=0; c<Merger_Coll_NumBHs; c++)

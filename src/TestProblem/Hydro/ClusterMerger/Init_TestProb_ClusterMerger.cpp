@@ -102,6 +102,10 @@ static double  *JetDirection = NULL;       // jet direction[time/theta_1/phi_1/t
 
 #ifdef MASSIVE_PARTICLES
        long_par *CM_ClusterIdx_Cur = NULL; // the current cluster index for the BHs
+                                           // Each black hole is initially associated
+                                           // with the cluster it is at the center of.
+                                           // When and if the two black holes merge,
+                                           // BH 0 belongs to both clusters.
 #endif
 
 static FieldIdx_t *ColorFieldsIdx;
@@ -209,6 +213,17 @@ void Validate()
       Aux_Error( ERROR_INFO, "please set PAR_INIT = 1 (by FUNCTION) !!\n" );
 #  endif
 
+// warnings
+   if ( MPI_Rank == 0 )
+   {
+      if ( AGN_feedback )
+      {
+         const double dh_max = amr->dh[MAX_LEVEL];
+         if ( R_acc/dh_max <= FlagTable_User[MAX_LEVEL][0] )
+            Aux_Message( stderr, "WARNING : MAX_LEVEL (%d) is less than the desired refinement level set in Input__Flag_User (R_acc = %13.7e, dh_max = %13.7e, Threshold[0] = %13.7e) !!\n", MAX_LEVEL, R_acc, dh_max, FlagTable_User[MAX_LEVEL][0] );
+
+      }
+   }
    if ( MPI_Rank == 0 )    Aux_Message( stdout, "   Validating test problem %d ... done\n", TESTPROB_ID );
 
 } // FUNCTION : Validate
@@ -374,6 +389,7 @@ void SetParameter()
       Aux_Error( ERROR_INFO, "please set NCOMP_PASSIVE_USER (currently %d) == Merger_Coll_NumHalos + Merger_Coll_UseMetals (currently %d) in the Makefile !!\n",
                  NCOMP_PASSIVE_USER, Merger_Coll_NumHalos + (int)Merger_Coll_UseMetals );
 
+
 // convert to code units
    for ( int c=0; c<Merger_Coll_NumHalos; c++ )
    {
@@ -389,6 +405,11 @@ void SetParameter()
 
    if ( AGN_feedback )
    {
+
+//    for now, we enforce that Merger_Coll_LabelCenter must be true
+      if ( !Merger_Coll_LabelCenter )
+         Aux_Error( ERROR_INFO, "Merger_Coll_LabelCenter must be true!\n")
+
 //    set the correct parameters when fixing the BH
       if ( Merger_Coll_NumHalos != 1  &&  fixBH )
       {
@@ -475,7 +496,7 @@ void SetParameter()
          MPI_Bcast( Table_M[c], Merger_NBin[c], MPI_DOUBLE, 0, MPI_COMM_WORLD );
       } // for (int c=0; c<Merger_Coll_NumHalos; c++)
 
-//    (2-2) initialize the BH/Halo position and velocity
+//    (2-2) reset the BH/Halo position and velocity with fixing the BH location
       if ( AGN_feedback && fixBH )
       {
          Merger_Coll_Pos[0][0] = amr->BoxCenter[0];
