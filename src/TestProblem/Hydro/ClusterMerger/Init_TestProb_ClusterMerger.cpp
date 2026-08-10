@@ -996,6 +996,8 @@ int Read_Num_Points_ClusterMerger( std::string filename )
    dataspace = H5Dget_space( dataset );
    rank      = H5Sget_simple_extent_dims( dataspace, dims, maxdims );
 
+   H5Sclose( dataspace );
+   H5Dclose( dataset );
    H5Fclose( file_id );
 
    return (int)dims[0];
