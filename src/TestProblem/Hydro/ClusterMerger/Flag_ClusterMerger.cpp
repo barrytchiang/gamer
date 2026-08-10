@@ -29,7 +29,7 @@ extern double (*CM_ClusterCen)[3];
 //-------------------------------------------------------------------------------------------------------
 bool Flag_ClusterMerger( const int i, const int j, const int k, const int lv, const int PID, const double *Threshold )
 {
-   
+
    const double dh     = amr->dh[lv];
    const double Pos[3] = { amr->patch[0][lv][PID]->EdgeL[0] + (i+0.5)*dh,
                            amr->patch[0][lv][PID]->EdgeL[1] + (j+0.5)*dh,
