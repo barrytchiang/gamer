@@ -408,7 +408,7 @@ void SetParameter()
 
 //    for now, we enforce that Merger_Coll_LabelCenter must be true
       if ( !Merger_Coll_LabelCenter )
-         Aux_Error( ERROR_INFO, "Merger_Coll_LabelCenter must be true!\n")
+         Aux_Error( ERROR_INFO, "Merger_Coll_LabelCenter must be true!\n");
 
 //    set the correct parameters when fixing the BH
       if ( Merger_Coll_NumHalos != 1  &&  fixBH )
