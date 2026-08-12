@@ -319,7 +319,7 @@ void Output_DumpData( const int Stage )
 //    the main HDF5 snapshot so that SubDumpID is already incremented when the snapshot is written;
 //    without this, restarting from a main-dump snapshot restores the pre-increment SubDumpID and
 //    the first sub-dump after restart collides (same filename) with the co-dump at the main dump
-      const bool AnySubDiv = OPT__OUTPUT_SUBDIV_GRID  ||  OPT__OUTPUT_SUBDIV_PAR  ||
+      const bool AnySubDiv = OPT__OUTPUT_SUBDIV_GRID    ||  OPT__OUTPUT_SUBDIV_PAR  ||
                              OPT__OUTPUT_SUBDIV_TRACER  ||  OPT__OUTPUT_SUBDIV_USER;
       if ( AnySubDiv  &&  OPT__OUTPUT_SUBDIV >= 1 )
       {
