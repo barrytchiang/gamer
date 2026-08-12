@@ -407,7 +407,7 @@ void Aux_Check_Parameter()
 
 // any sub-cadence output flag requires OPT__OUTPUT_SUBDIV >= 1;
 // conversely, OPT__OUTPUT_SUBDIV >= 1 requires at least one flag to be enabled
-   const bool AnySubDiv = OPT__OUTPUT_SUBDIV_GRID  ||  OPT__OUTPUT_SUBDIV_PAR  ||
+   const bool AnySubDiv = OPT__OUTPUT_SUBDIV_GRID    ||  OPT__OUTPUT_SUBDIV_PAR  ||
                           OPT__OUTPUT_SUBDIV_TRACER  ||  OPT__OUTPUT_SUBDIV_USER;
    if ( AnySubDiv  &&  OPT__OUTPUT_SUBDIV < 1 )
       Aux_Error( ERROR_INFO, "OPT__OUTPUT_SUBDIV_GRID/PAR/TRACER/USER requires OPT__OUTPUT_SUBDIV >= 1 !!\n" );
