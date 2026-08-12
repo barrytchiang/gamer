@@ -495,6 +495,7 @@ void Aux_Check_Parameter()
    Flag |= OPT__FLAG_NPAR_PATCH;
    Flag |= OPT__FLAG_NPAR_CELL;
    Flag |= OPT__FLAG_PAR_MASS_CELL;
+   Flag |= OPT__FLAG_PAR_TARGET;
 #  endif
 
    if ( !Flag )
@@ -1474,7 +1475,7 @@ void Aux_Check_Parameter()
 #  endif
 
 #  else // GRAMFE_SCHEME
-#  error : ERROR : Unsupported GRAMFE_SCHEME !!
+#  error : ERROR : unsupported GRAMFE_SCHEME !!
 #  endif // GRAMFE_SCHEME
 
 #  else // WAVE_SCHEME
@@ -1912,9 +1913,21 @@ void Aux_Check_Parameter()
 #     error : ERROR : SRC_GHOST_SIZE must be zero for now !!
 #  endif
 
+#  if ( defined( EXACT_COOLING )  &&  MODEL != HYDRO )
+#     error : ERROR : EXACT_COOLING must enable MODEL=HYDRO !!
+#  endif
+
 #  if ( MODEL != HYDRO )
    if ( SrcTerms.Deleptonization )
       Aux_Error( ERROR_INFO, "SRC_DELEPTONIZATION is only supported in HYDRO !!\n" );
+#  endif
+
+   if ( SrcTerms.ExactCooling )
+      Aux_Error( ERROR_INFO, "SRC_EXACTCOOLING is not supported yet !!\n" );
+
+#  ifndef EXACT_COOLING
+   if ( SrcTerms.ExactCooling )
+      Aux_Error( ERROR_INFO, "SRC_EXACTCOOLING is only supported when EXACT_COOLING is enabled !!\n" );
 #  endif
 
 // warning
