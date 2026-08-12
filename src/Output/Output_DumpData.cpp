@@ -375,7 +375,7 @@ void Output_DumpData( const int Stage )
 
 // sub-dump gate: fire individual sub-cadence outputs between main dumps
    {
-      const bool AnySubDiv2 = OPT__OUTPUT_SUBDIV_GRID  ||  OPT__OUTPUT_SUBDIV_PAR  ||
+      const bool AnySubDiv2 = OPT__OUTPUT_SUBDIV_GRID    ||  OPT__OUTPUT_SUBDIV_PAR  ||
                               OPT__OUTPUT_SUBDIV_TRACER  ||  OPT__OUTPUT_SUBDIV_USER;
       if ( OPT__OUTPUT_SUBDIV >= 2  &&  AnySubDiv2  &&  !OutputData  &&  !OutputData_RunTime  &&  !OutputData_Walltime )
       {
