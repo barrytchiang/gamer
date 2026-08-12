@@ -572,7 +572,7 @@ void Init_Load_Parameter()
    ReadPara->Add( "OUTPUT_DT",                  &OUTPUT_DT,                      -1.0,             NoMin_double,  NoMax_double   );
 // do not check OPT__OUTPUT_SUBDIV range here since validation is in Aux_Check_Parameter (0 is forbidden; <0=off, >=1=on)
    ReadPara->Add( "OPT__OUTPUT_SUBDIV",         &OPT__OUTPUT_SUBDIV,             -1,               NoMin_int,     NoMax_int      );
-   ReadPara->Add( "OPT__OUTPUT_SUBDIV_GRID",    &OPT__OUTPUT_SUBDIV_GRID,    false,            false,             true           );
+   ReadPara->Add( "OPT__OUTPUT_SUBDIV_GRID",    &OPT__OUTPUT_SUBDIV_GRID,        false,            Useless_bool,  Useless_bool   );
    ReadPara->Add( "OPT__OUTPUT_SUBDIV_PAR",     &OPT__OUTPUT_SUBDIV_PAR,         0,                0,             NoMax_int      );
    ReadPara->Add( "OPT__OUTPUT_SUBDIV_TRACER",  &OPT__OUTPUT_SUBDIV_TRACER,      0,                0,             NoMax_int      );
    ReadPara->Add( "OPT__OUTPUT_SUBDIV_USER",    &OPT__OUTPUT_SUBDIV_USER,        false,            Useless_bool,  Useless_bool   );
