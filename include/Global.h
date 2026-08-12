@@ -66,6 +66,9 @@ extern int        OPT__OUTPUT_SUBDIV;                 // subdivide main dump int
 extern bool       OPT__OUTPUT_SUBDIV_GRID;            // grid-only HDF5 sub-dumps on/off (field list in Input__Sub_Grid)
 extern bool       SubGridField[NCOMP_TOTAL];           // which native fluid fields to write in grid sub-dumps
 extern int        SubGridField_Num;                    // number of enabled fields in SubGridField[]
+extern char       SubGridDerLabel[NFIELD_STORED_MAX][MAX_STRING];   // derived-field labels selected in Input__Sub_Grid
+extern int        SubGridDerLabel_Num;                 // number of labels in SubGridDerLabel[]
+extern bool       SubGridDerAll;                       // keep all enabled derived fields in grid sub-dumps
 extern int        OPT__OUTPUT_SUBDIV_PAR;              // massive-particle HDF5 at sub-cadence (0=off,1=on,2=on+float32)
 extern int        OPT__OUTPUT_SUBDIV_TRACER;           // tracer HDF5 at sub-cadence (0=off,1=on,2=on+float32)
 extern bool       OPT__OUTPUT_SUBDIV_USER;            // fire Output_User_Ptr at sub-cadence (requires OPT__OUTPUT_USER)

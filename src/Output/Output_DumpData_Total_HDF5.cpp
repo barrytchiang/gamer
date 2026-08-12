@@ -346,26 +346,35 @@ void Output_DumpData_Total_HDF5( const char *FileName, const bool SkipPar, const
    }
    const int NCompStore  = NCOMP_TOTAL - NCompFluSkip;
 
+// for grid sub-dumps (SubGridMode), a derived field is written only if it is BOTH enabled by its
+// OPT__OUTPUT_* flag AND selected by Input__Sub_Grid (see SubGrid_DerFieldSelected())
 #  ifdef GRAVITY
-   const int PotDumpIdx = ( OPT__OUTPUT_POT ) ? NFieldStored++ : NoDump;
+   const bool OutPot = OPT__OUTPUT_POT  &&  ( !SubGridMode || SubGrid_DerFieldSelected(PotLabel) );
+   const int PotDumpIdx = ( OutPot ) ? NFieldStored++ : NoDump;
    if ( PotDumpIdx >= NFIELD_STORED_MAX )
       Aux_Error( ERROR_INFO, "exceed NFIELD_STORED_MAX (%d) !!\n", NFIELD_STORED_MAX );
-   if ( OPT__OUTPUT_POT )  sprintf( FieldLabelOut[PotDumpIdx], "%s", PotLabel );
+   if ( OutPot )  sprintf( FieldLabelOut[PotDumpIdx], "%s", PotLabel );
 #  endif
 
 #  ifdef MASSIVE_PARTICLES
-   const int ParDensDumpIdx = ( OPT__OUTPUT_PAR_DENS != PAR_OUTPUT_DENS_NONE ) ? NFieldStored++ : NoDump;
+   const char *ParDensLabel = ( OPT__OUTPUT_PAR_DENS == PAR_OUTPUT_DENS_PAR_ONLY ) ? "ParDens" : "TotalDens";
+   const bool OutParDens = ( OPT__OUTPUT_PAR_DENS != PAR_OUTPUT_DENS_NONE )  &&
+                           ( !SubGridMode || SubGrid_DerFieldSelected(ParDensLabel) );
+   const int ParDensDumpIdx = ( OutParDens ) ? NFieldStored++ : NoDump;
    if ( ParDensDumpIdx >= NFIELD_STORED_MAX )
       Aux_Error( ERROR_INFO, "exceed NFIELD_STORED_MAX (%d) !!\n", NFIELD_STORED_MAX );
-   if      ( OPT__OUTPUT_PAR_DENS == PAR_OUTPUT_DENS_PAR_ONLY )   sprintf( FieldLabelOut[ParDensDumpIdx], "%s", "ParDens"   );
-   else if ( OPT__OUTPUT_PAR_DENS == PAR_OUTPUT_DENS_TOTAL    )   sprintf( FieldLabelOut[ParDensDumpIdx], "%s", "TotalDens" );
+   if ( OutParDens )   sprintf( FieldLabelOut[ParDensDumpIdx], "%s", ParDensLabel );
 #  endif
 
 #  ifdef MHD
-   const int CCMagDumpIdx0 = ( OPT__OUTPUT_CC_MAG ) ? NFieldStored : NoDump;
+// selecting any of CCMagX/Y/Z in Input__Sub_Grid keeps all three components
+   const bool OutCCMag = OPT__OUTPUT_CC_MAG  &&
+                         ( !SubGridMode || SubGrid_DerFieldSelected("CCMagX") ||
+                           SubGrid_DerFieldSelected("CCMagY") || SubGrid_DerFieldSelected("CCMagZ") );
+   const int CCMagDumpIdx0 = ( OutCCMag ) ? NFieldStored : NoDump;
    if ( CCMagDumpIdx0+NCOMP_MAG-1 >= NFIELD_STORED_MAX )
       Aux_Error( ERROR_INFO, "exceed NFIELD_STORED_MAX (%d) !!\n", NFIELD_STORED_MAX );
-   if ( OPT__OUTPUT_CC_MAG )
+   if ( OutCCMag )
    {
       NFieldStored += NCOMP_MAG;
       sprintf( FieldLabelOut[ CCMagDumpIdx0 + MAGX ], "%s", "CCMagX" );
@@ -375,53 +384,65 @@ void Output_DumpData_Total_HDF5( const char *FileName, const bool SkipPar, const
 #  endif
 
 #  if ( MODEL == HYDRO )
-   const int PresDumpIdx   = ( OPT__OUTPUT_PRES ) ? NFieldStored++ : NoDump;
+   const bool OutPres = OPT__OUTPUT_PRES  &&  ( !SubGridMode || SubGrid_DerFieldSelected("Pres") );
+   const int PresDumpIdx = ( OutPres ) ? NFieldStored++ : NoDump;
    if ( PresDumpIdx >= NFIELD_STORED_MAX )
       Aux_Error( ERROR_INFO, "exceed NFIELD_STORED_MAX (%d) !!\n", NFIELD_STORED_MAX );
-   if ( OPT__OUTPUT_PRES   )  sprintf( FieldLabelOut[PresDumpIdx  ], "%s", "Pres"   );
+   if ( OutPres )  sprintf( FieldLabelOut[PresDumpIdx  ], "%s", "Pres"   );
 
-   const int TempDumpIdx   = ( OPT__OUTPUT_TEMP ) ? NFieldStored++ : NoDump;
+   const bool OutTemp = OPT__OUTPUT_TEMP  &&  ( !SubGridMode || SubGrid_DerFieldSelected("Temp") );
+   const int TempDumpIdx = ( OutTemp ) ? NFieldStored++ : NoDump;
    if ( TempDumpIdx >= NFIELD_STORED_MAX )
       Aux_Error( ERROR_INFO, "exceed NFIELD_STORED_MAX (%d) !!\n", NFIELD_STORED_MAX );
-   if ( OPT__OUTPUT_TEMP   )  sprintf( FieldLabelOut[TempDumpIdx  ], "%s", "Temp"   );
+   if ( OutTemp )  sprintf( FieldLabelOut[TempDumpIdx  ], "%s", "Temp"   );
 
-   const int EntrDumpIdx   = ( OPT__OUTPUT_ENTR ) ? NFieldStored++ : NoDump;
+   const bool OutEntr = OPT__OUTPUT_ENTR  &&  ( !SubGridMode || SubGrid_DerFieldSelected("Entr") );
+   const int EntrDumpIdx = ( OutEntr ) ? NFieldStored++ : NoDump;
    if ( EntrDumpIdx >= NFIELD_STORED_MAX )
       Aux_Error( ERROR_INFO, "exceed NFIELD_STORED_MAX (%d) !!\n", NFIELD_STORED_MAX );
-   if ( OPT__OUTPUT_ENTR   )  sprintf( FieldLabelOut[EntrDumpIdx  ], "%s", "Entr"   );
+   if ( OutEntr )  sprintf( FieldLabelOut[EntrDumpIdx  ], "%s", "Entr"   );
 
-   const int CsDumpIdx     = ( OPT__OUTPUT_CS ) ? NFieldStored++ : NoDump;
+   const bool OutCs = OPT__OUTPUT_CS  &&  ( !SubGridMode || SubGrid_DerFieldSelected("Cs") );
+   const int CsDumpIdx = ( OutCs ) ? NFieldStored++ : NoDump;
    if ( CsDumpIdx >= NFIELD_STORED_MAX )
       Aux_Error( ERROR_INFO, "exceed NFIELD_STORED_MAX (%d) !!\n", NFIELD_STORED_MAX );
-   if ( OPT__OUTPUT_CS     )  sprintf( FieldLabelOut[CsDumpIdx    ], "%s", "Cs"     );
+   if ( OutCs )  sprintf( FieldLabelOut[CsDumpIdx    ], "%s", "Cs"   );
 
-   const int DivVelDumpIdx = ( OPT__OUTPUT_DIVVEL ) ? NFieldStored++ : NoDump;
+   const bool OutDivVel = OPT__OUTPUT_DIVVEL  &&  ( !SubGridMode || SubGrid_DerFieldSelected("DivVel") );
+   const int DivVelDumpIdx = ( OutDivVel ) ? NFieldStored++ : NoDump;
    if ( DivVelDumpIdx >= NFIELD_STORED_MAX )
       Aux_Error( ERROR_INFO, "exceed NFIELD_STORED_MAX (%d) !!\n", NFIELD_STORED_MAX );
-   if ( OPT__OUTPUT_DIVVEL )  sprintf( FieldLabelOut[DivVelDumpIdx], "%s", "DivVel" );
+   if ( OutDivVel )  sprintf( FieldLabelOut[DivVelDumpIdx], "%s", "DivVel"   );
 
-   const int MachDumpIdx   = ( OPT__OUTPUT_MACH ) ? NFieldStored++ : NoDump;
+   const bool OutMach = OPT__OUTPUT_MACH  &&  ( !SubGridMode || SubGrid_DerFieldSelected("Mach") );
+   const int MachDumpIdx = ( OutMach ) ? NFieldStored++ : NoDump;
    if ( MachDumpIdx >= NFIELD_STORED_MAX )
       Aux_Error( ERROR_INFO, "exceed NFIELD_STORED_MAX (%d) !!\n", NFIELD_STORED_MAX );
-   if ( OPT__OUTPUT_MACH   )  sprintf( FieldLabelOut[MachDumpIdx  ], "%s", "Mach"   );
+   if ( OutMach )  sprintf( FieldLabelOut[MachDumpIdx  ], "%s", "Mach"   );
 
 #  ifdef MHD
-   const int DivMagDumpIdx = ( OPT__OUTPUT_DIVMAG ) ? NFieldStored++ : NoDump;
+   const bool OutDivMag = OPT__OUTPUT_DIVMAG  &&  ( !SubGridMode || SubGrid_DerFieldSelected("DivMag") );
+   const int DivMagDumpIdx = ( OutDivMag ) ? NFieldStored++ : NoDump;
    if ( DivMagDumpIdx >= NFIELD_STORED_MAX )
       Aux_Error( ERROR_INFO, "exceed NFIELD_STORED_MAX (%d) !!\n", NFIELD_STORED_MAX );
-   if ( OPT__OUTPUT_DIVMAG )  sprintf( FieldLabelOut[DivMagDumpIdx], "%s", "DivMag" );
+   if ( OutDivMag )  sprintf( FieldLabelOut[DivMagDumpIdx], "%s", "DivMag"   );
 #  endif
 
 #  ifdef SRHD
-   const int LorentzDumpIdx = ( OPT__OUTPUT_LORENTZ ) ? NFieldStored++ : NoDump;
+   const bool OutLrtz = OPT__OUTPUT_LORENTZ  &&  ( !SubGridMode || SubGrid_DerFieldSelected("Lrtz") );
+   const int LorentzDumpIdx = ( OutLrtz ) ? NFieldStored++ : NoDump;
    if ( LorentzDumpIdx >= NFIELD_STORED_MAX )
       Aux_Error( ERROR_INFO, "exceed NFIELD_STORED_MAX (%d) !!\n", NFIELD_STORED_MAX );
-   if ( OPT__OUTPUT_LORENTZ )  sprintf( FieldLabelOut[LorentzDumpIdx], "%s", "Lrtz" );
+   if ( OutLrtz )  sprintf( FieldLabelOut[LorentzDumpIdx], "%s", "Lrtz"   );
 
-   const int VelDumpIdx0 = ( OPT__OUTPUT_3VELOCITY ) ? NFieldStored : NoDump;
+// selecting any of VelX/Y/Z in Input__Sub_Grid keeps all three components
+   const bool Out3Vel = OPT__OUTPUT_3VELOCITY  &&
+                        ( !SubGridMode || SubGrid_DerFieldSelected("VelX") ||
+                          SubGrid_DerFieldSelected("VelY") || SubGrid_DerFieldSelected("VelZ") );
+   const int VelDumpIdx0 = ( Out3Vel ) ? NFieldStored : NoDump;
    if ( VelDumpIdx0+2 >= NFIELD_STORED_MAX )
       Aux_Error( ERROR_INFO, "exceed NFIELD_STORED_MAX (%d) !!\n", NFIELD_STORED_MAX );
-   if ( OPT__OUTPUT_3VELOCITY )
+   if ( Out3Vel )
    {
       NFieldStored += 3;
       sprintf( FieldLabelOut[ VelDumpIdx0     ], "%s", "VelX" );
@@ -429,37 +450,50 @@ void Output_DumpData_Total_HDF5( const char *FileName, const bool SkipPar, const
       sprintf( FieldLabelOut[ VelDumpIdx0 + 2 ], "%s", "VelZ" );
    }
 
-   const int EnthalpyDumpIdx = ( OPT__OUTPUT_ENTHALPY ) ? NFieldStored++ : NoDump;
+   const bool OutEnth = OPT__OUTPUT_ENTHALPY  &&  ( !SubGridMode || SubGrid_DerFieldSelected("Enth") );
+   const int EnthalpyDumpIdx = ( OutEnth ) ? NFieldStored++ : NoDump;
    if ( EnthalpyDumpIdx >= NFIELD_STORED_MAX )
       Aux_Error( ERROR_INFO, "exceed NFIELD_STORED_MAX (%d) !!\n", NFIELD_STORED_MAX );
-   if ( OPT__OUTPUT_ENTHALPY )  sprintf( FieldLabelOut[EnthalpyDumpIdx], "%s", "Enth" );
+   if ( OutEnth )  sprintf( FieldLabelOut[EnthalpyDumpIdx], "%s", "Enth"   );
 #  endif // #ifdef SRHD
 
 #  ifdef SUPPORT_GRACKLE
-   const int GrackleTempDumpIdx = ( OPT__OUTPUT_GRACKLE_TEMP ) ? NFieldStored++ : NoDump;
+   const bool OutGrackleTemp = OPT__OUTPUT_GRACKLE_TEMP  &&  ( !SubGridMode || SubGrid_DerFieldSelected("GrackleTemp") );
+   const int GrackleTempDumpIdx = ( OutGrackleTemp ) ? NFieldStored++ : NoDump;
    if ( GrackleTempDumpIdx >= NFIELD_STORED_MAX )
       Aux_Error( ERROR_INFO, "exceed NFIELD_STORED_MAX (%d) !!\n", NFIELD_STORED_MAX );
-   if ( OPT__OUTPUT_GRACKLE_TEMP )  sprintf( FieldLabelOut[GrackleTempDumpIdx], "%s", "GrackleTemp" );
+   if ( OutGrackleTemp )  sprintf( FieldLabelOut[GrackleTempDumpIdx], "%s", "GrackleTemp"   );
 
-   const int GrackleMuDumpIdx = ( OPT__OUTPUT_GRACKLE_MU ) ? NFieldStored++ : NoDump;
+   const bool OutGrackleMu = OPT__OUTPUT_GRACKLE_MU  &&  ( !SubGridMode || SubGrid_DerFieldSelected("GrackleMu") );
+   const int GrackleMuDumpIdx = ( OutGrackleMu ) ? NFieldStored++ : NoDump;
    if ( GrackleMuDumpIdx >= NFIELD_STORED_MAX )
       Aux_Error( ERROR_INFO, "exceed NFIELD_STORED_MAX (%d) !!\n", NFIELD_STORED_MAX );
-   if ( OPT__OUTPUT_GRACKLE_MU )  sprintf( FieldLabelOut[GrackleMuDumpIdx], "%s", "GrackleMu" );
+   if ( OutGrackleMu )  sprintf( FieldLabelOut[GrackleMuDumpIdx], "%s", "GrackleMu"   );
 
-   const int GrackleTCoolDumpIdx = ( OPT__OUTPUT_GRACKLE_TCOOL ) ? NFieldStored++ : NoDump;
+   const bool OutGrackleTCool = OPT__OUTPUT_GRACKLE_TCOOL  &&  ( !SubGridMode || SubGrid_DerFieldSelected("GrackleTCool") );
+   const int GrackleTCoolDumpIdx = ( OutGrackleTCool ) ? NFieldStored++ : NoDump;
    if ( GrackleTCoolDumpIdx >= NFIELD_STORED_MAX )
       Aux_Error( ERROR_INFO, "exceed NFIELD_STORED_MAX (%d) !!\n", NFIELD_STORED_MAX );
-   if ( OPT__OUTPUT_GRACKLE_TCOOL )  sprintf( FieldLabelOut[GrackleTCoolDumpIdx], "%s", "GrackleTCool" );
+   if ( OutGrackleTCool )  sprintf( FieldLabelOut[GrackleTCoolDumpIdx], "%s", "GrackleTCool"   );
 #  endif // ifdef SUPPORT_GRACKLE
 #  endif // if ( MODEL == HYDRO )
 
    const int UserDumpIdx0 = ( OPT__OUTPUT_USER_FIELD ) ? NFieldStored : NoDump;
-   if ( UserDumpIdx0+UserDerField_Num-1 >= NFIELD_STORED_MAX )
-      Aux_Error( ERROR_INFO, "exceed NFIELD_STORED_MAX (%d) !!\n", NFIELD_STORED_MAX );
+   int UserSelIdx[NFIELD_STORED_MAX];   // UserSelIdx[output slot] = index in UserDerField_Label[]
+   int NUserSel = 0;
    if ( OPT__OUTPUT_USER_FIELD )
    {
-      NFieldStored += UserDerField_Num;
-      for (int v=0; v<UserDerField_Num; v++)    sprintf( FieldLabelOut[ UserDumpIdx0 + v ], "%s", UserDerField_Label[v] );
+      for (int v=0; v<UserDerField_Num; v++)
+      {
+         if ( SubGridMode  &&  !SubGrid_DerFieldSelected(UserDerField_Label[v]) )   continue;
+
+         if ( UserDumpIdx0 + NUserSel >= NFIELD_STORED_MAX )
+            Aux_Error( ERROR_INFO, "exceed NFIELD_STORED_MAX (%d) !!\n", NFIELD_STORED_MAX );
+
+         sprintf( FieldLabelOut[ UserDumpIdx0 + NUserSel ], "%s", UserDerField_Label[v] );
+         UserSelIdx[ NUserSel ++ ] = v;
+      }
+      NFieldStored += NUserSel;
    }
 
 
@@ -838,7 +872,7 @@ void Output_DumpData_Total_HDF5( const char *FileName, const bool SkipPar, const
 
 //    5-2-0. initialize the particle density array (rho_ext) and collect particles from higher levels for outputting particle density
 #     ifdef MASSIVE_PARTICLES
-      if ( OPT__OUTPUT_PAR_DENS != PAR_OUTPUT_DENS_NONE )
+      if ( OutParDens )
       {
          Par_CollectParticle2OneLevel( lv, _PAR_MASS|_PAR_POSX|_PAR_POSY|_PAR_POSZ, _PAR_TYPE, PredictParPos_No,
                                        NULL_REAL, SibBufPatch, FaSibBufPatch, JustCountNPar_No, TimingSendPar_No );
@@ -1236,8 +1270,8 @@ void Output_DumpData_Total_HDF5( const char *FileName, const bool SkipPar, const
 #              endif // #if ( MODEL == HYDRO )
 
 //             d-14. user-defined derived fields
-//             the following check also works for OPT__OUTPUT_USER_FIELD==false since UserDerField_Num is initialized as 0
-               else if ( v >= UserDumpIdx0  &&  v < UserDumpIdx0 + UserDerField_Num )
+//             the following check also works for OPT__OUTPUT_USER_FIELD==false since NUserSel is initialized as 0
+               else if ( v >= UserDumpIdx0  &&  v < UserDumpIdx0 + NUserSel )
                {
                   for (int PID0=0; PID0<amr->NPatchComma[lv][1]; PID0+=8)
                   {
@@ -1279,11 +1313,11 @@ void Output_DumpData_Total_HDF5( const char *FileName, const bool SkipPar, const
                                                    NDer, DER_NXT, DER_NXT, DER_NXT, DER_GHOST_SIZE, amr->dh[lv] );
 
 //                      copy data from Der_Der[] to FieldData[]
-                        const int DerIdx = v - UserDumpIdx0;
+                        const int DerIdx = UserSelIdx[ v - UserDumpIdx0 ];
                         memcpy( FieldData[PID], Der_Out[DerIdx], FieldSizeOnePatch );
                      } // for (int LocalID=0; LocalID<8; LocalID++)
                   } // for (int PID0=0; PID0<amr->NPatchComma[lv][1]; PID0+=8)
-               } // if ( v >= UserDumpIdx0  &&  v < UserDumpIdx0 + UserDerField_Num )
+               } // if ( v >= UserDumpIdx0  &&  v < UserDumpIdx0 + NUserSel )
 
 //             e. primitive fluid variables
                else if ( v >= FluDumpIdx0  &&  v < FluDumpIdx0+NFluidPrimOut )
@@ -1347,7 +1381,7 @@ void Output_DumpData_Total_HDF5( const char *FileName, const bool SkipPar, const
 
 //          free memory used for outputting particle density
 #           ifdef MASSIVE_PARTICLES
-            if ( OPT__OUTPUT_PAR_DENS != PAR_OUTPUT_DENS_NONE )
+            if ( OutParDens )
             {
                Prepare_PatchData_FreeParticleDensityArray( lv );
 

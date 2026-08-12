@@ -1,17 +1,19 @@
-# List of native fluid field labels for grid sub-dumps (OPT__OUTPUT_SUBDIV_GRID = 1).
+# List of field labels for grid sub-dumps (OPT__OUTPUT_SUBDIV_GRID = 1).
 # One label per non-comment line.  The input label is case-sensitive.
 #
 # Supported labels:
 #   HYDRO      : Dens, MomX, MomY, MomZ, Engy
 #   ELBDM      : Dens, Real, Imag (ELBDM_WAVE) / Dens, Phase, Stub (ELBDM_HYBRID)
 #   Passive    : any user-defined passive scalar (check Init_Field.cpp for labels)
+#   Derived    : Pote, ParDens/TotalDens, CCMagX/Y/Z, Pres, Temp, Entr, Cs, DivVel, Mach,
+#                DivMag, Lrtz, VelX/Y/Z, Enth, GrackleTemp, GrackleMu, GrackleTCool,
+#                and any user-defined derived field (OPT__OUTPUT_USER_FIELD)
 #
 # Note:
-# --> This file controls ONLY native (conserved + passive) fluid fields.
-#     Derived fields (VelX/Y/Z, Pres, Temp, Entr, Eint, Pote, CC-Mag, ParDens, etc.)
-#     are controlled by their respective OPT__OUTPUT_* flags in Input__Parameter.
-#     Set those flags to 0 if you do not want them written in sub-dumps.
-# --> If this file is absent, all native fluid fields are written (same as default).
+# --> Derived fields additionally require their respective OPT__OUTPUT_* flags in Input__Parameter;
+#     listing a derived field here does NOT enable the flag.
+# --> Selecting any of CCMagX/Y/Z (or VelX/Y/Z) keeps all three components.
+# --> If this file is absent, all native fluid fields AND all enabled derived fields are written.
 # --> The output field label in the HDF5 sub-dumps matches the label exactly (no prefix added).
 #
 Dens

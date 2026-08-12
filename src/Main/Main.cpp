@@ -57,6 +57,9 @@ int                  OPT__OUTPUT_SUBDIV             = -1;
 bool                 OPT__OUTPUT_SUBDIV_GRID        = false;
 bool                 SubGridField[NCOMP_TOTAL]      = {};   // zero-initialized = all fields excluded until Init_SubGrid_Fields()
 int                  SubGridField_Num               = 0;
+char                 SubGridDerLabel[NFIELD_STORED_MAX][MAX_STRING];   // derived-field labels selected in Input__Sub_Grid
+int                  SubGridDerLabel_Num            = 0;
+bool                 SubGridDerAll                  = true;  // true (e.g., Input__Sub_Grid absent) = keep all enabled derived fields in grid sub-dumps
 int                  OPT__OUTPUT_SUBDIV_PAR         = 0;
 int                  OPT__OUTPUT_SUBDIV_TRACER      = 0;
 bool                 OPT__OUTPUT_SUBDIV_USER        = false;

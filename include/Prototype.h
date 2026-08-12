@@ -250,6 +250,7 @@ void Init_ByFile();
 void Init_UniformGrid( const int lv, const bool FindHomePatchForPar );
 void Init_Field();
 void Init_SubGrid_Fields();
+bool SubGrid_DerFieldSelected( const char *Label );
 FieldIdx_t AddField( const char *InputLabel, const FixUpFlux_t FixUp_Flux, const FixUpRestrict_t FixUp_Restrict,
                      const FloorPassive_t Floor, const NormPassive_t Norm, const IntFracPassive_t IntFrac );
 FieldIdx_t GetFieldIndex( const char *InputLabel, const Check_t Check );
