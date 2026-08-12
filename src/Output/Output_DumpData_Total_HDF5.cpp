@@ -1783,7 +1783,6 @@ void FillIn_KeyInfo( KeyInfo_t &KeyInfo, const int NFieldStored )
    KeyInfo.PatchSize            = PS1;
    KeyInfo.DumpID               = DumpID;
    KeyInfo.SubDumpID            = SubDumpID;
-   KeyInfo.SubDumpTime          = SubDumpTime;
    KeyInfo.Step                 = Step;
 #  ifdef GRAVITY
    KeyInfo.AveDens_Init         = AveDensity_Init;
@@ -3188,7 +3187,6 @@ void GetCompound_KeyInfo( hid_t &H5_TypeID )
    H5Tinsert( H5_TypeID, "Time",                 HOFFSET(KeyInfo_t,Time                ), H5_TypeID_Arr_NLvDouble );
    H5Tinsert( H5_TypeID, "CellSize",             HOFFSET(KeyInfo_t,CellSize            ), H5_TypeID_Arr_NLvDouble );
    H5Tinsert( H5_TypeID, "dTime_AllLv",          HOFFSET(KeyInfo_t,dTime_AllLv         ), H5_TypeID_Arr_NLvDouble );
-   H5Tinsert( H5_TypeID, "SubDumpTime",          HOFFSET(KeyInfo_t,SubDumpTime         ), H5T_NATIVE_DOUBLE       );
 #  ifdef GRAVITY
    H5Tinsert( H5_TypeID, "AveDens_Init",         HOFFSET(KeyInfo_t,AveDens_Init        ), H5T_NATIVE_DOUBLE       );
 #  endif

@@ -295,26 +295,6 @@ void Output_DumpData( const int Stage )
 //    perform user-specified work before dumping data
       if ( Output_UserWorkBeforeOutput_Ptr != NULL )  Output_UserWorkBeforeOutput_Ptr();
 
-//    advance DumpTime and SubDumpTime before writing the HDF5 so that the stored
-//    SubDumpTime is already the next sub-dump target; without this, restarting from
-//    a main-dump snapshot gives SubDumpTime == Time[0] → dTime == 0 → crash
-      if ( OutputData )
-      {
-         if ( OPT__OUTPUT_MODE == OUTPUT_CONST_DT  )  DumpTime = round( Time[0]/OUTPUT_DT + 1.0 )*OUTPUT_DT;
-         if ( OPT__OUTPUT_MODE == OUTPUT_USE_TABLE )  DumpTime = DumpTable[ ++DumpTableID ];
-
-         if ( OPT__OUTPUT_SUBDIV >= 2 )
-         {
-            LastMainDumpStep = Step;
-
-            if ( OPT__OUTPUT_MODE == OUTPUT_CONST_DT || OPT__OUTPUT_MODE == OUTPUT_USE_TABLE )
-            {
-               SubInterval = ( DumpTime - Time[0] ) / OPT__OUTPUT_SUBDIV;
-               SubDumpTime = Time[0] + SubInterval;
-            }
-         }
-      }
-
 //    fire sub-cadence outputs at N=1 (or at every main dump when SUBDIV >= 1) BEFORE writing
 //    the main HDF5 snapshot so that SubDumpID is already incremented when the snapshot is written;
 //    without this, restarting from a main-dump snapshot restores the pre-increment SubDumpID and
@@ -368,6 +348,24 @@ void Output_DumpData( const int Stage )
       Write_DumpRecord();
 
       DumpID ++;
+
+      if ( OutputData )
+      {
+         if ( OPT__OUTPUT_MODE == OUTPUT_CONST_DT  )  DumpTime = round( Time[0]/OUTPUT_DT + 1.0 )*OUTPUT_DT;
+         if ( OPT__OUTPUT_MODE == OUTPUT_USE_TABLE )  DumpTime = DumpTable[ ++DumpTableID ];
+
+//       set up the sub-dump cadence for the next main-dump interval
+         if ( OPT__OUTPUT_SUBDIV >= 2 )
+         {
+            LastMainDumpStep = Step;
+
+            if ( OPT__OUTPUT_MODE == OUTPUT_CONST_DT  ||  OPT__OUTPUT_MODE == OUTPUT_USE_TABLE )
+            {
+               SubInterval = ( DumpTime - Time[0] ) / OPT__OUTPUT_SUBDIV;
+               SubDumpTime = Time[0] + SubInterval;
+            }
+         }
+      }
 
       PreviousDumpStep = Step;
    } // if ( OutputData || OutputData_RunTime )
