@@ -133,7 +133,7 @@ OPT__OUTPUT_ENTHALPY          1           # output reduced enthalpy [1] ##SRHD O
 OPT__OUTPUT_USER_FIELD        0           # output user-defined derived fields [0] -> edit "Flu_DerivedField_User.cpp"
 OPT__OUTPUT_MODE              1           # (1=const step, 2=const dt, 3=dump table) -> edit "Input__DumpTable" for 3
 OPT__OUTPUT_SUBDIV           -1           # sub-cadence gate: <0=off; N>=1: sub-dumps between/at main dumps [-1]
-                                          # for OPT__OUTPUT_MODE == 1, sub-dump every N steps after each main dump 
+                                          # for OPT__OUTPUT_MODE == 1, sub-dump every N steps after each main dump
                                           # (e.g., N=3, const_step=7: sub-dumps at steps 0, 3, 6, 7, 10, 13, 14,...)
                                           # for OPT__OUTPUT_MODE == 2/3, sub-dump over evenly spaced N-1 intermediate substeps
 OPT__OUTPUT_SUBDIV_GRID       0           # grid-only yt-compatible HDF5 at sub-cadence (0=off, 1=on with field list set by Input__Sub_Grid) [0]
