@@ -1,8 +1,9 @@
 # List of native fluid field labels for grid sub-dumps (OPT__OUTPUT_SUBDIV_GRID = 1).
 # One label per non-comment line.  The input label is case-sensitive.
 #
-# Supported labels (HYDRO):
-#   Conserved  : Dens, MomX, MomY, MomZ, Engy
+# Supported labels:
+#   HYDRO      : Dens, MomX, MomY, MomZ, Engy
+#   ELBDM      : Dens, Real, Imag (ELBDM_WAVE) / Dens, Phase, Stub (ELBDM_HYBRID)
 #   Passive    : any user-defined passive scalar (check Init_Field.cpp for labels)
 #
 # Note:

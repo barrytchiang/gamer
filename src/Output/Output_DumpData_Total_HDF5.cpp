@@ -333,9 +333,7 @@ void Output_DumpData_Total_HDF5( const char *FileName, const bool SkipPar, const
 #     endif
 
 //    field masking for grid sub-dumps; field list controlled by SubGridField[] (Input__Sub_Grid)
-#     if ( MODEL == HYDRO )
       if ( SubGridMode  &&  !SubGridField[v] ) { NCompFluSkip += 1; continue; }
-#     endif
 
       FluSrcIdx[NFluidOut] = v;
       if ( v < NCOMP_FLUID )   NFluidPrimOut++;
