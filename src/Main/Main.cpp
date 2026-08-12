@@ -55,8 +55,8 @@ long                 END_STEP;
 int                  NX0_TOT[3], OUTPUT_STEP, OUTPUT_WALLTIME_UNIT, REGRID_COUNT, REFINE_NLEVEL, FLU_GPU_NPGROUP, SRC_GPU_NPGROUP, OMP_NTHREAD;
 int                  OPT__OUTPUT_SUBDIV             = -1;
 bool                 OPT__OUTPUT_SUBDIV_GRID        = false;
-bool                 SubGridField[NCOMP_TOTAL]       = {};   // zero-initialized = all fields excluded until Init_SubGrid_Fields()
-int                  SubGridField_Num                = 0;
+bool                 SubGridField[NCOMP_TOTAL]      = {};   // zero-initialized = all fields excluded until Init_SubGrid_Fields()
+int                  SubGridField_Num               = 0;
 int                  OPT__OUTPUT_SUBDIV_PAR         = 0;
 int                  OPT__OUTPUT_SUBDIV_TRACER      = 0;
 bool                 OPT__OUTPUT_SUBDIV_USER        = false;
