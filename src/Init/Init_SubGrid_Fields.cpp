@@ -12,8 +12,10 @@
 //                   can be either a native field (FieldLabel[v]) or a derived field recognized by
 //                   Output_DumpData_Total_HDF5() (e.g., Pote, ParDens/TotalDens, Pres, Temp, Entr,
 //                   CCMagX/Y/Z, user-defined derived fields, ...)
-//                3. Derived fields additionally require their respective OPT__OUTPUT_* flags to be
-//                   enabled; listing a derived field here does NOT enable the flag
+//                3. When Input__Sub_Grid is present, sub-dump derived fields are controlled solely
+//                   by this list (OPT__OUTPUT_* flags then apply to main dumps only); exceptions:
+//                   ParDens/TotalDens still requires OPT__OUTPUT_PAR_DENS (deposition mode) and
+//                   user-defined fields require OPT__OUTPUT_USER_FIELD (label initialization)
 //                4. Called by Init_GAMER() when OPT__OUTPUT_SUBDIV_GRID is true
 //                   --> after Init_DerivedField_User_Ptr() so that UserDerField_Label[] is available
 //-------------------------------------------------------------------------------------------------------

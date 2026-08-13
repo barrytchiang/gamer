@@ -10,10 +10,12 @@
 #                and any user-defined derived field (OPT__OUTPUT_USER_FIELD)
 #
 # Note:
-# --> Derived fields additionally require their respective OPT__OUTPUT_* flags in Input__Parameter;
-#     listing a derived field here does NOT enable the flag.
+# --> When this file is present, sub-dump derived fields are controlled SOLELY by this list; the
+#     OPT__OUTPUT_* flags in Input__Parameter then apply to main dumps only.
+#     Exceptions: ParDens/TotalDens additionally requires OPT__OUTPUT_PAR_DENS (the flag selects
+#     the deposition mode), and user-defined derived fields require OPT__OUTPUT_USER_FIELD.
 # --> Selecting any of CCMagX/Y/Z (or VelX/Y/Z) keeps all three components.
-# --> If this file is absent, all native fluid fields AND all enabled derived fields are written.
+# --> If this file is absent, all native fluid fields AND all flag-enabled derived fields are written.
 # --> The output field label in the HDF5 sub-dumps matches the label exactly (no prefix added).
 #
 Dens
