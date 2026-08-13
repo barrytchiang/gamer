@@ -26,6 +26,11 @@ Parameters described on this page:
 [OPT__OUTPUT_GRACKLE_TCOOL](#OPT__OUTPUT_GRACKLE_TCOOL), &nbsp;
 [OPT__OUTPUT_USER_FIELD](#OPT__OUTPUT_USER_FIELD), &nbsp;
 [OPT__OUTPUT_MODE](#OPT__OUTPUT_MODE), &nbsp;
+[OPT__OUTPUT_SUBDIV](#OPT__OUTPUT_SUBDIV), &nbsp;
+[OPT__OUTPUT_SUBDIV_GRID](#OPT__OUTPUT_SUBDIV_GRID), &nbsp;
+[OPT__OUTPUT_SUBDIV_PAR](#OPT__OUTPUT_SUBDIV_PAR), &nbsp;
+[OPT__OUTPUT_SUBDIV_TRACER](#OPT__OUTPUT_SUBDIV_TRACER), &nbsp;
+[OPT__OUTPUT_SUBDIV_USER](#OPT__OUTPUT_SUBDIV_USER), &nbsp;
 [OPT__OUTPUT_RESTART](#OPT__OUTPUT_RESTART), &nbsp;
 [OUTPUT_STEP](#OUTPUT_STEP), &nbsp;
 [OUTPUT_DT](#OUTPUT_DT), &nbsp;
@@ -249,6 +254,72 @@ Must enable at least one of the output options
 [OPT__OUTPUT_USER](#OPT__OUTPUT_USER),
 [OPT__OUTPUT_PAR_MODE](#OPT__OUTPUT_PAR_MODE), and
 [OPT__OUTPUT_BASEPS](#OPT__OUTPUT_BASEPS).
+
+<a name="OPT__OUTPUT_SUBDIV"></a>
+* #### `OPT__OUTPUT_SUBDIV` &ensp; (<0=off, N&#8805;1=on) &ensp; [-1]
+    * **Description:**
+Sub-cadence output gate: fire additional outputs at a finer cadence than
+(and between) the main data dumps, without writing extra `Data_XXXXXX` files.
+`N = 1` fires at main dumps only; `N &#8805; 2` additionally fires `N-1` evenly
+spaced intermediate sub-dumps per main-dump interval
+(for [OPT__OUTPUT_MODE](#OPT__OUTPUT_MODE) = 1, a sub-dump is fired every `N`
+steps after each main dump instead). Each sub-dump event advances the global
+counter `SubDumpID` (distinct from `DumpID`) and is recorded in
+[[Record__TimeSubDump | [Simulation-Logs]-Record__TimeSubDump]].
+The output types are selected by the four `OPT__OUTPUT_SUBDIV_*` flags below.
+    * **Restriction:**
+`0` is forbidden. When enabled, at least one of the four `OPT__OUTPUT_SUBDIV_*`
+flags below must be set.
+
+<a name="OPT__OUTPUT_SUBDIV_GRID"></a>
+* #### `OPT__OUTPUT_SUBDIV_GRID` &ensp; (0=off, 1=on) &ensp; [0]
+    * **Description:**
+Write a grid-only, yt-compatible HDF5 file (`SubGrid_%06d`, indexed by `SubDumpID`)
+at the sub-cadence set by [OPT__OUTPUT_SUBDIV](#OPT__OUTPUT_SUBDIV), with particles skipped.
+The set of fields written is controlled by the optional input file `Input__Sub_Grid`
+(one field label per line; both native and derived fields are supported; an annotated
+template is provided at `example/input/Input__Sub_Grid`). When `Input__Sub_Grid` is
+present, sub-dump derived fields are controlled solely by this list and the
+`OPT__OUTPUT_*` field flags apply to main dumps only; when absent, all native fields
+plus all flag-enabled derived fields are written.
+    * **Restriction:**
+Only applicable when enabling [[--hdf5 | [Installation]-Option-List#--hdf5]].
+`ParDens`/`TotalDens` additionally requires [OPT__OUTPUT_PAR_DENS](#OPT__OUTPUT_PAR_DENS)
+and user-defined derived fields require [OPT__OUTPUT_USER_FIELD](#OPT__OUTPUT_USER_FIELD).
+
+<a name="OPT__OUTPUT_SUBDIV_PAR"></a>
+* #### `OPT__OUTPUT_SUBDIV_PAR` &ensp; (0=off, 1=on, 2=on with float32 output) &ensp; [0]
+    * **Description:**
+Write a compact massive-particle HDF5 file (`SubParticle_%06d`, indexed by `SubDumpID`)
+with all stored floating-point/integer particle attributes at the sub-cadence set by
+[OPT__OUTPUT_SUBDIV](#OPT__OUTPUT_SUBDIV). `2` downcasts floating-point attributes to
+single precision to reduce file size.
+    * **Restriction:**
+Only applicable when enabling [[--particle | [Installation]-Option-List#--particle]]
+and [[--hdf5 | [Installation]-Option-List#--hdf5]].
+
+<a name="OPT__OUTPUT_SUBDIV_TRACER"></a>
+* #### `OPT__OUTPUT_SUBDIV_TRACER` &ensp; (0=off, 1=on, 2=on with float32 output) &ensp; [0]
+    * **Description:**
+Write a compact tracer-particle HDF5 file (`SubTracer_%06d`, indexed by `SubDumpID`)
+with all stored floating-point/integer/mesh-sampled particle attributes at the
+sub-cadence set by [OPT__OUTPUT_SUBDIV](#OPT__OUTPUT_SUBDIV). `ParMass` is always
+suppressed (physically meaningless for tracers). `2` downcasts floating-point
+attributes to single precision to reduce file size.
+    * **Restriction:**
+Only applicable when enabling [[--tracer | [Installation]-Option-List#--tracer]]
+and [[--hdf5 | [Installation]-Option-List#--hdf5]].
+
+<a name="OPT__OUTPUT_SUBDIV_USER"></a>
+* #### `OPT__OUTPUT_SUBDIV_USER` &ensp; (0=off, 1=on) &ensp; [0]
+    * **Description:**
+Fire `Output_User_Ptr()` at the sub-cadence set by
+[OPT__OUTPUT_SUBDIV](#OPT__OUTPUT_SUBDIV). When enabled, `Output_User_Ptr()` fires
+exclusively via the sub-cadence path (indexed by `SubDumpID`) at both sub-dumps and
+main dumps; the regular [OPT__OUTPUT_USER](#OPT__OUTPUT_USER) call at main dumps is
+suppressed for consistent indexing.
+    * **Restriction:**
+Requires [OPT__OUTPUT_USER](#OPT__OUTPUT_USER) = 1.
 
 <a name="OPT__OUTPUT_RESTART"></a>
 * #### `OPT__OUTPUT_RESTART` &ensp; (0=off, 1=on) &ensp; [0]
