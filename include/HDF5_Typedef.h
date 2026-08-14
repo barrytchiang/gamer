@@ -706,7 +706,6 @@ struct InputPara_t
    int    Src_ExactCooling;
 #  ifdef EXACT_COOLING
    int    Src_EC_TEF_N;
-   int    Src_EC_subcycling;
    double Src_EC_dtCoef;
 #  endif
 
