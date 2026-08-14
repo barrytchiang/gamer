@@ -307,7 +307,9 @@ void Output_ExactCooling()
                                       true, MIN_TEMP, PassiveFloorMask, 0.0, EoS_DensEint2Temp_CPUPtr, EoS_GuessHTilde_CPUPtr,
                                       EoS_HTilde2Temp_CPUPtr, EoS_AuxArray_Flt, EoS_AuxArray_Int, h_EoS_Table );
       Tcool_nume   += 1.0/(GAMMA-1.0)*(Const_kB*cl_moli_mole*Temp_nume_tmp)/(fluid[DENS]*UNIT_D/MU_NORM*cl_mol*3.2217e-27*sqrt(Temp_nume_tmp))/Const_Myr;
+#     ifdef TCOOL
       Tcool_dt     += fluid[TCOOL]*UNIT_T/Const_Myr;
+#     endif
       Temp_nume    += Temp_nume_tmp;
       count        += 1L;
    }}} // i, j, k, PID
