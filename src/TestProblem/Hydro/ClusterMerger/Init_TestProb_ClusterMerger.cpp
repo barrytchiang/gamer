@@ -174,6 +174,7 @@ void Validate()
    if ( MPI_Rank == 0 )    Aux_Message( stdout, "   Validating test problem %d ...\n", TESTPROB_ID );
 
 
+// errors
 #  if ( MODEL != HYDRO )
    Aux_Error( ERROR_INFO, "MODEL != HYDRO !!\n" );
 #  endif
@@ -215,6 +216,10 @@ void Validate()
    if ( OPT__INIT == INIT_BY_FUNCTION  &&  amr->Par->Init != PAR_INIT_BY_FUNCTION )
       Aux_Error( ERROR_INFO, "please set PAR_INIT = 1 (by FUNCTION) !!\n" );
 #  endif
+
+   if ( OPT__FLAG_USER  &&  OPT__FLAG_USER_NUM != 2 )
+      Aux_Error( ERROR_INFO, "OPT__FLAG_USER_NUM (%d) != 2 when enabling OPT__FLAG_USER !!\n", OPT__FLAG_USER_NUM );
+
 
 // warnings
    if ( MPI_Rank == 0 )
