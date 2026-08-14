@@ -106,6 +106,7 @@ static double  *JetDirection = NULL;       // jet direction[time/theta_1/phi_1/t
                                            // with the cluster it is at the center of.
                                            // When and if the two black holes merge,
                                            // BH 0 belongs to both clusters.
+                                           // CM_ClusterIdx_Cur[X] = Y means that cluster X is associated with BH Y.
 #endif
 
 static FieldIdx_t *ColorFieldsIdx;
