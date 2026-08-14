@@ -79,7 +79,7 @@ Procedure for outputting new variables:
 
 
 //-------------------------------------------------------------------------------------------------------
-// Function    :  Output_DumpData_Total_HDF5 (FormatVersion = 2510)
+// Function    :  Output_DumpData_Total_HDF5 (FormatVersion = 2512)
 // Description :  Output all simulation data in the HDF5 format, which can be used as a restart file
 //                or loaded by YT
 //
@@ -290,6 +290,7 @@ Procedure for outputting new variables:
 //                2509 : 2026/04/18 --> output OPT__FLAG_PAR_TARGET, OPT__FLAG_PAR_TARGET_SIB, Par->FlagInit, particle integer attribute PAR_FLAG
 //                2510 : 2026/06/07 --> output EXTRA_EOS_CHECK, CHECK_UNPHY_ROUNDING, CHECK_UNPHY_ROUNDING_FACTOR
 //                2511 : 2026/07/02 --> output exact-cooling parameters
+//                2512 : 2026/08/14 --> remove Src_EC_subcycling
 //-------------------------------------------------------------------------------------------------------
 void Output_DumpData_Total_HDF5( const char *FileName )
 {
@@ -2798,7 +2799,6 @@ void FillIn_InputPara( InputPara_t &InputPara, const int NFieldStored, char Fiel
    InputPara.Src_ExactCooling        = SrcTerms.ExactCooling;
 #  ifdef EXACT_COOLING
    InputPara.Src_EC_TEF_N            = SrcTerms.EC_TEF_N;
-   InputPara.Src_EC_subcycling       = SrcTerms.EC_subcycling;
    InputPara.Src_EC_dtCoef           = SrcTerms.EC_dtCoef;
 #  endif
    InputPara.Src_GPU_NPGroup         = SRC_GPU_NPGROUP;
@@ -3908,7 +3908,6 @@ void GetCompound_InputPara( hid_t &H5_TypeID, const int NFieldStored )
    H5Tinsert( H5_TypeID, "Src_ExactCooling",        HOFFSET(InputPara_t,Src_ExactCooling       ), H5T_NATIVE_INT              );
 #  ifdef EXACT_COOLING
    H5Tinsert( H5_TypeID, "Src_EC_TEF_N",            HOFFSET(InputPara_t,Src_EC_TEF_N           ), H5T_NATIVE_INT              );
-   H5Tinsert( H5_TypeID, "Src_EC_subcycling",       HOFFSET(InputPara_t,Src_EC_subcycling      ), H5T_NATIVE_INT              );
    H5Tinsert( H5_TypeID, "Src_EC_dtCoef",           HOFFSET(InputPara_t,Src_EC_dtCoef          ), H5T_NATIVE_DOUBLE           );
 #  endif
 
