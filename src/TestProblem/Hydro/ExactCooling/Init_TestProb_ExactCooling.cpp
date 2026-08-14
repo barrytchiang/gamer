@@ -264,8 +264,16 @@ void Output_ExactCooling()
             Aux_Message( stderr, "WARNING : file \"%s\" already exists !!\n", FileName );
 
          FILE *File_User = fopen( FileName, "a" );
+         fprintf( File_User, "# Temp_nume : temperature updated by the exact-cooling solver\n" );
+         fprintf( File_User, "# Temp_anal : temperature obtained from the analytical integration\n" );
+         fprintf( File_User, "# Err       : relative error defined as (Temp_nume-Temp_anal)/Temp_anal\n" );
+         fprintf( File_User, "# Tcool_nume: cooling time computed from the output density and output temperature Temp_nume\n" );
+         fprintf( File_User, "# Tcool_dt  : cooling time used for time-step estimation\n" );
+         fprintf( File_User, "# Tcool_anal: cooling time computed from the input density and analytical temperature Temp_anal\n" );
+         fprintf( File_User, "# ================================================================================================\n" );
          fprintf( File_User, "#%13s%10s ",  "Time [Myr]", "DumpID" );
-         fprintf( File_User, "%16s %16s %16s %16s %16s", "Temp_nume [K]", "Temp_anal [K]", "Err", "Tcool_nume [Myr]", "Tcool_anal [Myr]" );
+         fprintf( File_User, "%16s %16s %16s %16s %16s %16s",
+                  "Temp_nume [K]", "Temp_anal [K]", "Err", "Tcool_nume [Myr]", "Tcool_dt [Myr]", "Tcool_anal [Myr]" );
          fprintf( File_User, "\n" );
          fclose( File_User );
       }
@@ -286,6 +294,7 @@ void Output_ExactCooling()
    double Temp_nume     = 0.0;
    double Temp_nume_tmp = 0.0;
    double Tcool_nume    = 0.0;
+   double Tcool_dt      = 0.0;
    long   count         = 0L;
 
    for (int PID=0; PID<amr->NPatchComma[lv][1]; PID++)
@@ -298,12 +307,14 @@ void Output_ExactCooling()
                                       true, MIN_TEMP, PassiveFloorMask, 0.0, EoS_DensEint2Temp_CPUPtr, EoS_GuessHTilde_CPUPtr,
                                       EoS_HTilde2Temp_CPUPtr, EoS_AuxArray_Flt, EoS_AuxArray_Int, h_EoS_Table );
       Tcool_nume   += 1.0/(GAMMA-1.0)*(Const_kB*cl_moli_mole*Temp_nume_tmp)/(fluid[DENS]*UNIT_D/MU_NORM*cl_mol*3.2217e-27*sqrt(Temp_nume_tmp))/Const_Myr;
+      Tcool_dt     += fluid[TCOOL]*UNIT_T/Const_Myr;
       Temp_nume    += Temp_nume_tmp;
       count        += 1L;
    }}} // i, j, k, PID
 
    Temp_nume  /= count;
    Tcool_nume /= count;
+   Tcool_dt   /= count;
 
 // compute the analytical solution for single branch cooling function
    double Temp_anal, Tcool_anal;
@@ -321,7 +332,8 @@ void Output_ExactCooling()
    {
       FILE *File_User = fopen( FileName, "a" );
       fprintf( File_User, "%14.7e%10d ", Time[0]*UNIT_T/Const_Myr, DumpID );
-      fprintf( File_User, "%16.7e %16.7e %16.7e %16.7e %16.7e", Temp_nume, Temp_anal, (Temp_nume-Temp_anal)/Temp_anal, Tcool_nume, Tcool_anal );
+      fprintf( File_User, "%16.7e %16.7e %16.7e %16.7e %16.7e %16.7e",
+               Temp_nume, Temp_anal, (Temp_nume-Temp_anal)/Temp_anal, Tcool_nume, Tcool_dt, Tcool_anal );
       fprintf( File_User, "\n" );
       fclose( File_User );
    }
