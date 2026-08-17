@@ -584,9 +584,9 @@ void Init_Load_Parameter()
    ReadPara->Add( "OPT__OUTPUT_SUBDIV_GRID",    &OPT__OUTPUT_SUBDIV_GRID,        false,            Useless_bool,  Useless_bool   );
    ReadPara->Add( "OPT__OUTPUT_SUBDIV_PAR",     &OPT__OUTPUT_SUBDIV_PAR,         false,            Useless_bool,  Useless_bool   );
    ReadPara->Add( "OPT__OUTPUT_SUBDIV_TRACER",  &OPT__OUTPUT_SUBDIV_TRACER,      false,            Useless_bool,  Useless_bool   );
+   ReadPara->Add( "OPT__OUTPUT_SUBDIV_USER",    &OPT__OUTPUT_SUBDIV_USER,        false,            Useless_bool,  Useless_bool   );
    ReadPara->Add( "OPT__OUTPUT_SUBDIV_TREE",    &OPT__OUTPUT_SUBDIV_TREE,        true,             Useless_bool,  Useless_bool   );
    ReadPara->Add( "OPT__OUTPUT_SUBDIV_FLOAT32", &OPT__OUTPUT_SUBDIV_FLOAT32,     false,            Useless_bool,  Useless_bool   );
-   ReadPara->Add( "OPT__OUTPUT_SUBDIV_USER",    &OPT__OUTPUT_SUBDIV_USER,        false,            Useless_bool,  Useless_bool   );
    ReadPara->Add( "OUTPUT_WALLTIME",            &OUTPUT_WALLTIME,                -1.0,             NoMin_double,  NoMax_double   );
    ReadPara->Add( "OUTPUT_WALLTIME_UNIT",       &OUTPUT_WALLTIME_UNIT,            0,               0,             3              );
 // do not check OUTPUT_PART_X/Y/Z since they depend on OPT__OUTPUT_PART

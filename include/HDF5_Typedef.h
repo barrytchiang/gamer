@@ -888,9 +888,9 @@ struct InputPara_t
    int    Opt__Output_Subdiv_Grid;
    int    Opt__Output_Subdiv_Par;
    int    Opt__Output_Subdiv_Tracer;
+   int    Opt__Output_Subdiv_User;
    int    Opt__Output_Subdiv_Tree;
    int    Opt__Output_Subdiv_Float32;
-   int    Opt__Output_Subdiv_User;
 
 // libyt jupyter interface
 #  if ( defined(SUPPORT_LIBYT) && defined(LIBYT_JUPYTER) )

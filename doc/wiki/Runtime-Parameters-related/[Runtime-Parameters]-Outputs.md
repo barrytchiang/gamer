@@ -30,9 +30,9 @@ Parameters described on this page:
 [OPT__OUTPUT_SUBDIV_GRID](#OPT__OUTPUT_SUBDIV_GRID), &nbsp;
 [OPT__OUTPUT_SUBDIV_PAR](#OPT__OUTPUT_SUBDIV_PAR), &nbsp;
 [OPT__OUTPUT_SUBDIV_TRACER](#OPT__OUTPUT_SUBDIV_TRACER), &nbsp;
+[OPT__OUTPUT_SUBDIV_USER](#OPT__OUTPUT_SUBDIV_USER), &nbsp;
 [OPT__OUTPUT_SUBDIV_TREE](#OPT__OUTPUT_SUBDIV_TREE), &nbsp;
 [OPT__OUTPUT_SUBDIV_FLOAT32](#OPT__OUTPUT_SUBDIV_FLOAT32), &nbsp;
-[OPT__OUTPUT_SUBDIV_USER](#OPT__OUTPUT_SUBDIV_USER), &nbsp;
 [OPT__OUTPUT_RESTART](#OPT__OUTPUT_RESTART), &nbsp;
 [OUTPUT_STEP](#OUTPUT_STEP), &nbsp;
 [OUTPUT_DT](#OUTPUT_DT), &nbsp;
@@ -262,7 +262,7 @@ Must enable at least one of the output options
     * **Description:**
 Sub-cadence output gate: fire additional outputs at a finer cadence than
 (and between) the main data dumps, without writing extra `Data_XXXXXX` files.
-`N = 1` fires at main dumps only; `N &#8805; 2` additionally fires `N-1` evenly
+N = 1 fires at main dumps only; N &#8805; 2 additionally fires N-1 evenly
 spaced intermediate sub-dumps per main-dump interval
 (for [OPT__OUTPUT_MODE](#OPT__OUTPUT_MODE) = 1, a sub-dump is fired every `N`
 steps after each main dump instead). Each sub-dump event advances the global
@@ -313,24 +313,6 @@ mixed-type layout.
 Only applicable when enabling [[--tracer | [Installation]-Option-List#--tracer]]
 and [[--hdf5 | [Installation]-Option-List#--hdf5]].
 
-<a name="OPT__OUTPUT_SUBDIV_TREE"></a>
-* #### `OPT__OUTPUT_SUBDIV_TREE` &ensp; (0=off, 1=on) &ensp; [1]
-    * **Description:**
-Include the `Tree` group (the AMR hierarchy) in the `SubData_%06d` sub-dumps. The tree is
-required for loading the sub-dumps with `yt`; disabling it minimizes the file size for
-outputs consumed by direct `h5py`/NumPy access (when only a subset of particle types is
-output, the particle counts in `KeyInfo` and `Tree/NPar` reflect the type-filtered counts so
-that `yt` indexes the `Particle` datasets correctly).
-    * **Restriction:**
-Required by [OPT__OUTPUT_SUBDIV_GRID](#OPT__OUTPUT_SUBDIV_GRID).
-
-<a name="OPT__OUTPUT_SUBDIV_FLOAT32"></a>
-* #### `OPT__OUTPUT_SUBDIV_FLOAT32` &ensp; (0=off, 1=on) &ensp; [0]
-    * **Description:**
-Downcast the floating-point (including mesh-sampled) particle attributes in the
-`SubData_%06d` `Particle` group to single precision to reduce file size.
-    * **Restriction:**
-
 <a name="OPT__OUTPUT_SUBDIV_USER"></a>
 * #### `OPT__OUTPUT_SUBDIV_USER` &ensp; (0=off, 1=on) &ensp; [0]
     * **Description:**
@@ -341,6 +323,27 @@ main dumps; the regular [OPT__OUTPUT_USER](#OPT__OUTPUT_USER) call at main dumps
 suppressed for consistent indexing.
     * **Restriction:**
 Requires [OPT__OUTPUT_USER](#OPT__OUTPUT_USER) = 1.
+
+<a name="OPT__OUTPUT_SUBDIV_TREE"></a>
+* #### `OPT__OUTPUT_SUBDIV_TREE` &ensp; (0=off, 1=on) &ensp; [1]
+    * **Description:**
+Include the `Tree` group (the AMR hierarchy) in the `SubData_%06d` sub-dumps. The tree is
+required for loading the sub-dumps with `yt`; disabling it minimizes the file size for
+outputs consumed by direct `h5py`/NumPy access (when only a subset of particle types is
+output, the particle counts in `KeyInfo` and `Tree/NPar` reflect the type-filtered counts so
+that `yt` indexes the `Particle` datasets correctly).
+    * **Restriction:**
+Only applicable when enabling [[--hdf5 | [Installation]-Option-List#--hdf5]].
+Required by [OPT__OUTPUT_SUBDIV_GRID](#OPT__OUTPUT_SUBDIV_GRID).
+
+<a name="OPT__OUTPUT_SUBDIV_FLOAT32"></a>
+* #### `OPT__OUTPUT_SUBDIV_FLOAT32` &ensp; (0=off, 1=on) &ensp; [0]
+    * **Description:**
+Downcast the floating-point (including mesh-sampled) particle attributes in the
+`SubData_%06d` `Particle` group to single precision to reduce file size.
+    * **Restriction:**
+Only applicable when enabling [[--particle | [Installation]-Option-List#--particle]]
+and [[--hdf5 | [Installation]-Option-List#--hdf5]].
 
 <a name="OPT__OUTPUT_RESTART"></a>
 * #### `OPT__OUTPUT_RESTART` &ensp; (0=off, 1=on) &ensp; [0]

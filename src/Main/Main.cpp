@@ -61,9 +61,9 @@ char                 SubGridDerLabel[NFIELD_STORED_MAX][MAX_STRING];   // derive
 int                  SubGridDerLabel_Num            = 0;
 bool                 OPT__OUTPUT_SUBDIV_PAR         = false;
 bool                 OPT__OUTPUT_SUBDIV_TRACER      = false;
+bool                 OPT__OUTPUT_SUBDIV_USER        = false;
 bool                 OPT__OUTPUT_SUBDIV_TREE        = true;
 bool                 OPT__OUTPUT_SUBDIV_FLOAT32     = false;
-bool                 OPT__OUTPUT_SUBDIV_USER        = false;
 int                  MPI_NRank, MPI_NRank_X[3];
 int                  GPU_NSTREAM, FLAG_BUFFER_SIZE, FLAG_BUFFER_SIZE_MAXM1_LV, FLAG_BUFFER_SIZE_MAXM2_LV, MAX_LEVEL;
 

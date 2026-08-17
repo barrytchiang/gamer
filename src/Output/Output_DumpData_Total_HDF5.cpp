@@ -84,7 +84,7 @@ Procedure for outputting new variables:
 
 
 //-------------------------------------------------------------------------------------------------------
-// Function    :  Output_DumpData_Total_HDF5 (FormatVersion = 2510)
+// Function    :  Output_DumpData_Total_HDF5 (FormatVersion = 2512)
 // Description :  Output all simulation data in the HDF5 format, which can be used as a restart file
 //                or loaded by YT
 //
@@ -122,7 +122,9 @@ Procedure for outputting new variables:
 //                        --> Particles are stored in the order of their associated GIDs as well, but the order of
 //                            particles in the same patch is not specified
 //
-// Parameter   :  FileName : Name of the output file
+// Parameter   :  FileName    : Name of the output file
+//                SubDataMode : true --> write a SubData_* sub-dump, whose Tree, GridData, and Particle
+//                                       groups are controlled by the OPT__OUTPUT_SUBDIV_* options
 //
 // Revision    :  2210 : 2016/10/03 --> output HUBBLE0, OPT__UNIT, UNIT_L/M/T/V/D/E, MOLECULAR_WEIGHT
 //                2216 : 2016/11/27 --> output OPT__FLAG_LOHNER_TEMP
@@ -295,6 +297,7 @@ Procedure for outputting new variables:
 //                2509 : 2026/04/18 --> output OPT__FLAG_PAR_TARGET, OPT__FLAG_PAR_TARGET_SIB, Par->FlagInit, particle integer attribute PAR_FLAG
 //                2510 : 2026/06/07 --> output EXTRA_EOS_CHECK, CHECK_UNPHY_ROUNDING, CHECK_UNPHY_ROUNDING_FACTOR
 //                2511 : 2026/07/02 --> output exact-cooling parameters
+//                2512 : 2026/08/17 --> output SubDumpID and the OPT__OUTPUT_SUBDIV* parameters
 //-------------------------------------------------------------------------------------------------------
 void Output_DumpData_Total_HDF5( const char *FileName, const bool SubDataMode )
 {
@@ -1943,7 +1946,7 @@ void FillIn_KeyInfo( KeyInfo_t &KeyInfo, const int NFieldStored )
 
    const time_t CalTime = time( NULL );   // calendar time
 
-   KeyInfo.FormatVersion        = 2511;
+   KeyInfo.FormatVersion        = 2512;
    KeyInfo.Model                = MODEL;
    KeyInfo.NLevel               = NLEVEL;
    KeyInfo.NCompFluid           = NCOMP_FLUID;
@@ -3186,9 +3189,9 @@ void FillIn_InputPara( InputPara_t &InputPara, const int NFieldStored, char Fiel
    InputPara.Opt__Output_Subdiv_Grid     = OPT__OUTPUT_SUBDIV_GRID;
    InputPara.Opt__Output_Subdiv_Par      = OPT__OUTPUT_SUBDIV_PAR;
    InputPara.Opt__Output_Subdiv_Tracer   = OPT__OUTPUT_SUBDIV_TRACER;
+   InputPara.Opt__Output_Subdiv_User     = OPT__OUTPUT_SUBDIV_USER;
    InputPara.Opt__Output_Subdiv_Tree     = OPT__OUTPUT_SUBDIV_TREE;
    InputPara.Opt__Output_Subdiv_Float32  = OPT__OUTPUT_SUBDIV_FLOAT32;
-   InputPara.Opt__Output_Subdiv_User     = OPT__OUTPUT_SUBDIV_USER;
 
 // libyt jupyter
 #  if ( defined(SUPPORT_LIBYT) && defined(LIBYT_JUPYTER) )
@@ -4286,9 +4289,9 @@ void GetCompound_InputPara( hid_t &H5_TypeID, const int NFieldStored )
    H5Tinsert( H5_TypeID, "Opt__Output_Subdiv_Grid",    HOFFSET(InputPara_t,Opt__Output_Subdiv_Grid    ), H5T_NATIVE_INT              );
    H5Tinsert( H5_TypeID, "Opt__Output_Subdiv_Par",     HOFFSET(InputPara_t,Opt__Output_Subdiv_Par     ), H5T_NATIVE_INT              );
    H5Tinsert( H5_TypeID, "Opt__Output_Subdiv_Tracer",  HOFFSET(InputPara_t,Opt__Output_Subdiv_Tracer  ), H5T_NATIVE_INT              );
+   H5Tinsert( H5_TypeID, "Opt__Output_Subdiv_User",    HOFFSET(InputPara_t,Opt__Output_Subdiv_User    ), H5T_NATIVE_INT              );
    H5Tinsert( H5_TypeID, "Opt__Output_Subdiv_Tree",    HOFFSET(InputPara_t,Opt__Output_Subdiv_Tree    ), H5T_NATIVE_INT              );
    H5Tinsert( H5_TypeID, "Opt__Output_Subdiv_Float32", HOFFSET(InputPara_t,Opt__Output_Subdiv_Float32 ), H5T_NATIVE_INT              );
-   H5Tinsert( H5_TypeID, "Opt__Output_Subdiv_User",    HOFFSET(InputPara_t,Opt__Output_Subdiv_User    ), H5T_NATIVE_INT              );
 
 // libyt jupyter
 #  if ( defined(SUPPORT_LIBYT) && defined(LIBYT_JUPYTER) )
