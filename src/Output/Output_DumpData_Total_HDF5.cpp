@@ -856,7 +856,23 @@ void Output_DumpData_Total_HDF5( const char *FileName, const bool SubDataMode )
 
 
 // 5. output the simulation grid data (density, momentum, ... etc)
-//    --> skipped entirely for SubData outputs with no selected fields (OPT__OUTPUT_SUBDIV_GRID off)
+//    --> skipped for SubData outputs with no selected fields (OPT__OUTPUT_SUBDIV_GRID off), in which
+//        case an empty GridData group is still created when the tree is output, since the yt gamer
+//        frontend requires the group to exist
+   if ( NFieldStored == 0  &&  OutTree  &&  MPI_Rank == 0 )
+   {
+      SyncHDF5File( FileName );
+
+      H5_FileID = H5Fopen( FileName, H5F_ACC_RDWR, H5P_DEFAULT );
+      if ( H5_FileID < 0 )    Aux_Error( ERROR_INFO, "failed to open the HDF5 file \"%s\" !!\n", FileName );
+
+      H5_GroupID_GridData = H5Gcreate( H5_FileID, "GridData", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT );
+      if ( H5_GroupID_GridData < 0 )   Aux_Error( ERROR_INFO, "failed to create the group \"%s\" !!\n", "GridData" );
+
+      H5_Status = H5Gclose( H5_GroupID_GridData );
+      H5_Status = H5Fclose( H5_FileID );
+   }
+
    if ( NFieldStored > 0 ) {
    const int FieldSizeOnePatch = sizeof(real)*CUBE(PS1);
    real (*FieldData)[PS1][PS1][PS1]  = NULL;
