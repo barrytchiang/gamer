@@ -30,6 +30,8 @@ Parameters described on this page:
 [OPT__OUTPUT_SUBDIV_GRID](#OPT__OUTPUT_SUBDIV_GRID), &nbsp;
 [OPT__OUTPUT_SUBDIV_PAR](#OPT__OUTPUT_SUBDIV_PAR), &nbsp;
 [OPT__OUTPUT_SUBDIV_TRACER](#OPT__OUTPUT_SUBDIV_TRACER), &nbsp;
+[OPT__OUTPUT_SUBDIV_TREE](#OPT__OUTPUT_SUBDIV_TREE), &nbsp;
+[OPT__OUTPUT_SUBDIV_FLOAT32](#OPT__OUTPUT_SUBDIV_FLOAT32), &nbsp;
 [OPT__OUTPUT_SUBDIV_USER](#OPT__OUTPUT_SUBDIV_USER), &nbsp;
 [OPT__OUTPUT_RESTART](#OPT__OUTPUT_RESTART), &nbsp;
 [OUTPUT_STEP](#OUTPUT_STEP), &nbsp;
@@ -266,7 +268,9 @@ spaced intermediate sub-dumps per main-dump interval
 steps after each main dump instead). Each sub-dump event advances the global
 counter `SubDumpID` (distinct from `DumpID`) and is recorded in
 [[Record__TimeSubDump | [Simulation-Logs]-Record__TimeSubDump]].
-The output types are selected by the four `OPT__OUTPUT_SUBDIV_*` flags below.
+Sub-cadence data are written to a single `SubData_%06d` file (full-snapshot HDF5 format)
+whose `Tree`, `GridData`, and `Particle` groups are controlled independently by the
+`OPT__OUTPUT_SUBDIV_*` flags below; `OPT__OUTPUT_SUBDIV_USER` fires the user output routine.
     * **Restriction:**
 `0` is forbidden. When enabled, at least one of the four `OPT__OUTPUT_SUBDIV_*`
 flags below must be set.
@@ -274,41 +278,58 @@ flags below must be set.
 <a name="OPT__OUTPUT_SUBDIV_GRID"></a>
 * #### `OPT__OUTPUT_SUBDIV_GRID` &ensp; (0=off, 1=on) &ensp; [0]
     * **Description:**
-Write a grid-only, yt-compatible HDF5 file (`SubGrid_%06d`, indexed by `SubDumpID`)
-at the sub-cadence set by [OPT__OUTPUT_SUBDIV](#OPT__OUTPUT_SUBDIV), with particles skipped.
-The set of fields written is controlled by the optional input file `Input__Sub_Grid`
-(one field label per line; both native and derived fields are supported; an annotated
-template is provided at `example/input/Input__Sub_Grid`). When `Input__Sub_Grid` is
-present, sub-dump derived fields are controlled solely by this list and the
-`OPT__OUTPUT_*` field flags apply to main dumps only; when absent, all native fields
-plus all flag-enabled derived fields are written.
+Include the `GridData` group in the `SubData_%06d` sub-dumps. The set of fields written is
+controlled by the input file `Input__Sub_Grid` (one field label per line; both native and
+derived fields are supported; an annotated template is provided at
+`example/input/Input__Sub_Grid`), which is required when this option is enabled. Sub-dump
+derived fields are controlled solely by this list; the `OPT__OUTPUT_*` field flags apply to
+main dumps only.
     * **Restriction:**
 Only applicable when enabling [[--hdf5 | [Installation]-Option-List#--hdf5]].
-`ParDens`/`TotalDens` additionally requires [OPT__OUTPUT_PAR_DENS](#OPT__OUTPUT_PAR_DENS)
-and user-defined derived fields require [OPT__OUTPUT_USER_FIELD](#OPT__OUTPUT_USER_FIELD).
+Requires [OPT__OUTPUT_SUBDIV_TREE](#OPT__OUTPUT_SUBDIV_TREE) and the file `Input__Sub_Grid`
+(a missing file is a fatal error). Listing `ParDens`/`TotalDens` without
+[OPT__OUTPUT_PAR_DENS](#OPT__OUTPUT_PAR_DENS) or a user-defined derived field without
+[OPT__OUTPUT_USER_FIELD](#OPT__OUTPUT_USER_FIELD) is a fatal error.
 
 <a name="OPT__OUTPUT_SUBDIV_PAR"></a>
-* #### `OPT__OUTPUT_SUBDIV_PAR` &ensp; (0=off, 1=on, 2=on with float32 output) &ensp; [0]
+* #### `OPT__OUTPUT_SUBDIV_PAR` &ensp; (0=off, 1=on) &ensp; [0]
     * **Description:**
-Write a compact massive-particle HDF5 file (`SubParticle_%06d`, indexed by `SubDumpID`)
-with all stored floating-point/integer particle attributes at the sub-cadence set by
-[OPT__OUTPUT_SUBDIV](#OPT__OUTPUT_SUBDIV). `2` downcasts floating-point attributes to
-single precision to reduce file size.
+Include massive particles in the `Particle` group of the `SubData_%06d` sub-dumps, with all
+stored floating-point/integer/mesh-sampled attributes. Massive and tracer particles are mixed
+in a single patch-ordered array as in full snapshots; separate them in post-processing via the
+`ParType` attribute.
     * **Restriction:**
 Only applicable when enabling [[--particle | [Installation]-Option-List#--particle]]
 and [[--hdf5 | [Installation]-Option-List#--hdf5]].
 
 <a name="OPT__OUTPUT_SUBDIV_TRACER"></a>
-* #### `OPT__OUTPUT_SUBDIV_TRACER` &ensp; (0=off, 1=on, 2=on with float32 output) &ensp; [0]
+* #### `OPT__OUTPUT_SUBDIV_TRACER` &ensp; (0=off, 1=on) &ensp; [0]
     * **Description:**
-Write a compact tracer-particle HDF5 file (`SubTracer_%06d`, indexed by `SubDumpID`)
-with all stored floating-point/integer/mesh-sampled particle attributes at the
-sub-cadence set by [OPT__OUTPUT_SUBDIV](#OPT__OUTPUT_SUBDIV). `ParMass` is always
-suppressed (physically meaningless for tracers). `2` downcasts floating-point
-attributes to single precision to reduce file size.
+Include tracer particles in the `Particle` group of the `SubData_%06d` sub-dumps, with all
+stored floating-point/integer/mesh-sampled attributes (tracer rows carry their stored zero
+masses as in full snapshots). See [OPT__OUTPUT_SUBDIV_PAR](#OPT__OUTPUT_SUBDIV_PAR) for the
+mixed-type layout.
     * **Restriction:**
 Only applicable when enabling [[--tracer | [Installation]-Option-List#--tracer]]
 and [[--hdf5 | [Installation]-Option-List#--hdf5]].
+
+<a name="OPT__OUTPUT_SUBDIV_TREE"></a>
+* #### `OPT__OUTPUT_SUBDIV_TREE` &ensp; (0=off, 1=on) &ensp; [1]
+    * **Description:**
+Include the `Tree` group (the AMR hierarchy) in the `SubData_%06d` sub-dumps. The tree is
+required for loading the sub-dumps with `yt`; disabling it minimizes the file size for
+outputs consumed by direct `h5py`/NumPy access (when only a subset of particle types is
+output, the particle counts in `KeyInfo` and `Tree/NPar` reflect the type-filtered counts so
+that `yt` indexes the `Particle` datasets correctly).
+    * **Restriction:**
+Required by [OPT__OUTPUT_SUBDIV_GRID](#OPT__OUTPUT_SUBDIV_GRID).
+
+<a name="OPT__OUTPUT_SUBDIV_FLOAT32"></a>
+* #### `OPT__OUTPUT_SUBDIV_FLOAT32` &ensp; (0=off, 1=on) &ensp; [0]
+    * **Description:**
+Downcast the floating-point (including mesh-sampled) particle attributes in the
+`SubData_%06d` `Particle` group to single precision to reduce file size.
+    * **Restriction:**
 
 <a name="OPT__OUTPUT_SUBDIV_USER"></a>
 * #### `OPT__OUTPUT_SUBDIV_USER` &ensp; (0=off, 1=on) &ensp; [0]

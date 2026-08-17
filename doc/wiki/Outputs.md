@@ -41,12 +41,13 @@ is on.
 The runtime parameter
 [[OPT__OUTPUT_SUBDIV | [Runtime-Parameters]-Outputs#OPT__OUTPUT_SUBDIV]]
 fires additional outputs at a finer cadence than (and between) the main data dumps
-without writing extra `Data_XXXXXX` files. Four independent output types are supported:
-grid-only yt-compatible HDF5 snapshots (`SubGrid_*`, with the field list set by
-`Input__Sub_Grid`), compact massive-particle and tracer-particle HDF5 files
-(`SubParticle_*`/`SubTracer_*`, with optional float32 output), and sub-cadence
-`Output_User_Ptr()` calls. All sub-cadence outputs are indexed by the global counter
-`SubDumpID` and recorded in
+without writing extra `Data_XXXXXX` files. Sub-cadence data are written to a single
+`SubData_*` file in the full-snapshot HDF5 format, whose `Tree`, `GridData` (field list
+set by `Input__Sub_Grid`), and `Particle` (massive and/or tracer particles, with optional
+float32 output) groups are controlled independently, from fully `yt`-loadable snapshots
+down to minimal particles-only files for direct `h5py` access; sub-cadence
+`Output_User_Ptr()` calls are also supported. All sub-cadence outputs are indexed by the
+global counter `SubDumpID` and recorded in
 [[Record__TimeSubDump | [Simulation-Logs]-Record__TimeSubDump]].
 
 
