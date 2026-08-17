@@ -305,17 +305,11 @@ void Output_DumpData( const int Stage )
       {
          char SubFileName[2*MAX_STRING];
 #        ifdef SUPPORT_HDF5
-         if ( OPT__OUTPUT_SUBDIV_GRID )
+         if ( OPT__OUTPUT_SUBDIV_GRID  ||  OPT__OUTPUT_SUBDIV_PAR  ||  OPT__OUTPUT_SUBDIV_TRACER )
          {
-            sprintf( SubFileName, "%s/SubGrid_%06d", OUTPUT_DIR, SubDumpID );
-            Output_DumpData_Total_HDF5( SubFileName, true, true );
+            sprintf( SubFileName, "%s/SubData_%06d", OUTPUT_DIR, SubDumpID );
+            Output_DumpData_Total_HDF5( SubFileName, true );
          }
-#        endif
-#        ifdef PARTICLE
-         if ( OPT__OUTPUT_SUBDIV_PAR )     Par_Output_SubParticle( SubDumpID );
-#        ifdef TRACER
-         if ( OPT__OUTPUT_SUBDIV_TRACER )  Par_Output_SubTracer( SubDumpID );
-#        endif
 #        endif
          if ( OPT__OUTPUT_SUBDIV_USER )
          {
@@ -401,17 +395,11 @@ void Output_DumpData( const int Stage )
          {
             char SubFileName[2*MAX_STRING];
 #           ifdef SUPPORT_HDF5
-            if ( OPT__OUTPUT_SUBDIV_GRID )
+            if ( OPT__OUTPUT_SUBDIV_GRID  ||  OPT__OUTPUT_SUBDIV_PAR  ||  OPT__OUTPUT_SUBDIV_TRACER )
             {
-               sprintf( SubFileName, "%s/SubGrid_%06d", OUTPUT_DIR, SubDumpID );
-               Output_DumpData_Total_HDF5( SubFileName, true, true );
+               sprintf( SubFileName, "%s/SubData_%06d", OUTPUT_DIR, SubDumpID );
+               Output_DumpData_Total_HDF5( SubFileName, true );
             }
-#           endif
-#           ifdef PARTICLE
-            if ( OPT__OUTPUT_SUBDIV_PAR )     Par_Output_SubParticle( SubDumpID );
-#           ifdef TRACER
-            if ( OPT__OUTPUT_SUBDIV_TRACER )  Par_Output_SubTracer( SubDumpID );
-#           endif
 #           endif
             if ( OPT__OUTPUT_SUBDIV_USER )
             {

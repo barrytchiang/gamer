@@ -5,6 +5,11 @@
 #include <ctime>
 
 void FillIn_KeyInfo  (   KeyInfo_t &KeyInfo, const int NFieldStored );
+
+#ifdef PARTICLE
+static long SubData_NParOut_AllRank = -1;    // global particle count of the CURRENT output
+                                             // (type-filtered for SubData; set by Output_DumpData_Total_HDF5())
+#endif
 void FillIn_Makefile (  Makefile_t &Makefile  );
 void FillIn_SymConst (  SymConst_t &SymConst  );
 void FillIn_InputPara( InputPara_t &InputPara, const int NFieldStored, char FieldLabelOut[][MAX_STRING] );
@@ -291,12 +296,57 @@ Procedure for outputting new variables:
 //                2510 : 2026/06/07 --> output EXTRA_EOS_CHECK, CHECK_UNPHY_ROUNDING, CHECK_UNPHY_ROUNDING_FACTOR
 //                2511 : 2026/07/02 --> output exact-cooling parameters
 //-------------------------------------------------------------------------------------------------------
-void Output_DumpData_Total_HDF5( const char *FileName, const bool SkipPar, const bool SubGridMode )
+void Output_DumpData_Total_HDF5( const char *FileName, const bool SubDataMode )
 {
+
+// SubData group selection (sub-cadence outputs write a single SubData_* file whose Tree,
+// GridData, and Particle groups are controlled independently; see OPT__OUTPUT_SUBDIV_*)
+   const bool OutTree     = !SubDataMode  ||  OPT__OUTPUT_SUBDIV_TREE;
+#  ifdef PARTICLE
+   const bool OutParticle = !SubDataMode  ||  OPT__OUTPUT_SUBDIV_PAR  ||  OPT__OUTPUT_SUBDIV_TRACER;
+   const bool SelMassive  = !SubDataMode  ||  OPT__OUTPUT_SUBDIV_PAR;      // non-tracer types
+   const bool SelTracer   = !SubDataMode  ||  OPT__OUTPUT_SUBDIV_TRACER;
+
+// per-level particle counts included in this output (type-filtered for SubData)
+   long NParOut_Lv[NLEVEL];
+   long NParOut_ThisRank = 0;
+
+   for (int lv=0; lv<NLEVEL; lv++)
+   {
+      if ( SelMassive  &&  SelTracer )
+         NParOut_Lv[lv] = amr->Par->NPar_Lv[lv];
+
+      else
+      {
+         NParOut_Lv[lv] = 0;
+
+         if ( OutParticle )
+         for (int PID=0; PID<amr->NPatchComma[lv][1]; PID++)
+         for (int p=0; p<amr->patch[0][lv][PID]->NPar; p++)
+         {
+            const long TParID = amr->patch[0][lv][PID]->ParList[p];
+#           ifdef TRACER
+            const bool IsTracer = ( amr->Par->Type[TParID] == PTYPE_TRACER );
+#           else
+            const bool IsTracer = false;
+#           endif
+            if ( IsTracer ? SelTracer : SelMassive )   NParOut_Lv[lv] ++;
+         }
+      }
+
+      NParOut_ThisRank += NParOut_Lv[lv];
+   }
+
+// global type-filtered count (consumed by FillIn_KeyInfo() and the Particle dataspace)
+   if ( SelMassive  &&  SelTracer )
+      SubData_NParOut_AllRank = amr->Par->NPar_Active_AllRank;
+   else
+      MPI_Allreduce( &NParOut_ThisRank, &SubData_NParOut_AllRank, 1, MPI_LONG, MPI_SUM, MPI_COMM_WORLD );
+#  endif // #ifdef PARTICLE
 
    if ( MPI_Rank == 0 )
    {
-      if ( SubGridMode )   Aux_Message( stdout, "%s (SubDumpID = %d)  ...\n", __FUNCTION__, SubDumpID );
+      if ( SubDataMode )   Aux_Message( stdout, "%s (SubDumpID = %d)  ...\n", __FUNCTION__, SubDumpID );
       else                 Aux_Message( stdout, "%s (DumpID = %d)     ...\n", __FUNCTION__, DumpID    );
    }
 
@@ -336,7 +386,7 @@ void Output_DumpData_Total_HDF5( const char *FileName, const bool SkipPar, const
 #     endif
 
 //    field masking for grid sub-dumps; field list controlled by SubGridField[] (Input__Sub_Grid)
-      if ( SubGridMode  &&  !SubGridField[v] ) { NCompFluSkip += 1; continue; }
+      if ( SubDataMode  &&  !SubGridField[v] ) { NCompFluSkip += 1; continue; }
 
       FluSrcIdx[NFluidOut] = v;
       if ( v < NCOMP_FLUID )   NFluidPrimOut++;
@@ -349,11 +399,11 @@ void Output_DumpData_Total_HDF5( const char *FileName, const bool SkipPar, const
    }
    const int NCompStore  = NCOMP_TOTAL - NCompFluSkip;
 
-// for grid sub-dumps (SubGridMode), derived fields are controlled SOLELY by Input__Sub_Grid
+// for grid sub-dumps (SubDataMode), derived fields are controlled SOLELY by Input__Sub_Grid
 // (the OPT__OUTPUT_* flags apply to main dumps only; the file is required and validated by
 // Init_SubGrid_Fields(), including the ParDens/TotalDens and user-defined-field flag requirements)
 #  ifdef GRAVITY
-   const bool OutPot = ( SubGridMode ) ? SubGrid_DerFieldSelected(PotLabel) : OPT__OUTPUT_POT;
+   const bool OutPot = ( SubDataMode ) ? SubGrid_DerFieldSelected(PotLabel) : OPT__OUTPUT_POT;
    const int PotDumpIdx = ( OutPot ) ? NFieldStored++ : NoDump;
    if ( PotDumpIdx >= NFIELD_STORED_MAX )
       Aux_Error( ERROR_INFO, "exceed NFIELD_STORED_MAX (%d) !!\n", NFIELD_STORED_MAX );
@@ -364,7 +414,7 @@ void Output_DumpData_Total_HDF5( const char *FileName, const bool SkipPar, const
    const char *ParDensLabel = ( OPT__OUTPUT_PAR_DENS == PAR_OUTPUT_DENS_PAR_ONLY ) ? "ParDens" : "TotalDens";
 // OPT__OUTPUT_PAR_DENS is still required in sub-dumps since it selects the deposition mode
    const bool OutParDens = ( OPT__OUTPUT_PAR_DENS != PAR_OUTPUT_DENS_NONE )  &&
-                           ( !( SubGridMode ) || SubGrid_DerFieldSelected(ParDensLabel) );
+                           ( !( SubDataMode ) || SubGrid_DerFieldSelected(ParDensLabel) );
    const int ParDensDumpIdx = ( OutParDens ) ? NFieldStored++ : NoDump;
    if ( ParDensDumpIdx >= NFIELD_STORED_MAX )
       Aux_Error( ERROR_INFO, "exceed NFIELD_STORED_MAX (%d) !!\n", NFIELD_STORED_MAX );
@@ -373,7 +423,7 @@ void Output_DumpData_Total_HDF5( const char *FileName, const bool SkipPar, const
 
 #  ifdef MHD
 // selecting any of CCMagX/Y/Z in Input__Sub_Grid keeps all three components
-   const bool OutCCMag = ( SubGridMode )
+   const bool OutCCMag = ( SubDataMode )
                          ? (  SubGrid_DerFieldSelected("CCMagX") || SubGrid_DerFieldSelected("CCMagY") ||
                               SubGrid_DerFieldSelected("CCMagZ")  )
                          : OPT__OUTPUT_CC_MAG;
@@ -390,42 +440,42 @@ void Output_DumpData_Total_HDF5( const char *FileName, const bool SkipPar, const
 #  endif
 
 #  if ( MODEL == HYDRO )
-   const bool OutPres = ( SubGridMode ) ? SubGrid_DerFieldSelected("Pres")
+   const bool OutPres = ( SubDataMode ) ? SubGrid_DerFieldSelected("Pres")
                          : OPT__OUTPUT_PRES;
    const int PresDumpIdx = ( OutPres ) ? NFieldStored++ : NoDump;
    if ( PresDumpIdx >= NFIELD_STORED_MAX )
       Aux_Error( ERROR_INFO, "exceed NFIELD_STORED_MAX (%d) !!\n", NFIELD_STORED_MAX );
    if ( OutPres )  sprintf( FieldLabelOut[PresDumpIdx  ], "%s", "Pres"   );
 
-   const bool OutTemp = ( SubGridMode ) ? SubGrid_DerFieldSelected("Temp")
+   const bool OutTemp = ( SubDataMode ) ? SubGrid_DerFieldSelected("Temp")
                          : OPT__OUTPUT_TEMP;
    const int TempDumpIdx = ( OutTemp ) ? NFieldStored++ : NoDump;
    if ( TempDumpIdx >= NFIELD_STORED_MAX )
       Aux_Error( ERROR_INFO, "exceed NFIELD_STORED_MAX (%d) !!\n", NFIELD_STORED_MAX );
    if ( OutTemp )  sprintf( FieldLabelOut[TempDumpIdx  ], "%s", "Temp"   );
 
-   const bool OutEntr = ( SubGridMode ) ? SubGrid_DerFieldSelected("Entr")
+   const bool OutEntr = ( SubDataMode ) ? SubGrid_DerFieldSelected("Entr")
                          : OPT__OUTPUT_ENTR;
    const int EntrDumpIdx = ( OutEntr ) ? NFieldStored++ : NoDump;
    if ( EntrDumpIdx >= NFIELD_STORED_MAX )
       Aux_Error( ERROR_INFO, "exceed NFIELD_STORED_MAX (%d) !!\n", NFIELD_STORED_MAX );
    if ( OutEntr )  sprintf( FieldLabelOut[EntrDumpIdx  ], "%s", "Entr"   );
 
-   const bool OutCs = ( SubGridMode ) ? SubGrid_DerFieldSelected("Cs")
+   const bool OutCs = ( SubDataMode ) ? SubGrid_DerFieldSelected("Cs")
                         : OPT__OUTPUT_CS;
    const int CsDumpIdx = ( OutCs ) ? NFieldStored++ : NoDump;
    if ( CsDumpIdx >= NFIELD_STORED_MAX )
       Aux_Error( ERROR_INFO, "exceed NFIELD_STORED_MAX (%d) !!\n", NFIELD_STORED_MAX );
    if ( OutCs )  sprintf( FieldLabelOut[CsDumpIdx    ], "%s", "Cs"   );
 
-   const bool OutDivVel = ( SubGridMode ) ? SubGrid_DerFieldSelected("DivVel")
+   const bool OutDivVel = ( SubDataMode ) ? SubGrid_DerFieldSelected("DivVel")
                            : OPT__OUTPUT_DIVVEL;
    const int DivVelDumpIdx = ( OutDivVel ) ? NFieldStored++ : NoDump;
    if ( DivVelDumpIdx >= NFIELD_STORED_MAX )
       Aux_Error( ERROR_INFO, "exceed NFIELD_STORED_MAX (%d) !!\n", NFIELD_STORED_MAX );
    if ( OutDivVel )  sprintf( FieldLabelOut[DivVelDumpIdx], "%s", "DivVel"   );
 
-   const bool OutMach = ( SubGridMode ) ? SubGrid_DerFieldSelected("Mach")
+   const bool OutMach = ( SubDataMode ) ? SubGrid_DerFieldSelected("Mach")
                          : OPT__OUTPUT_MACH;
    const int MachDumpIdx = ( OutMach ) ? NFieldStored++ : NoDump;
    if ( MachDumpIdx >= NFIELD_STORED_MAX )
@@ -433,7 +483,7 @@ void Output_DumpData_Total_HDF5( const char *FileName, const bool SkipPar, const
    if ( OutMach )  sprintf( FieldLabelOut[MachDumpIdx  ], "%s", "Mach"   );
 
 #  ifdef MHD
-   const bool OutDivMag = ( SubGridMode ) ? SubGrid_DerFieldSelected("DivMag")
+   const bool OutDivMag = ( SubDataMode ) ? SubGrid_DerFieldSelected("DivMag")
                            : OPT__OUTPUT_DIVMAG;
    const int DivMagDumpIdx = ( OutDivMag ) ? NFieldStored++ : NoDump;
    if ( DivMagDumpIdx >= NFIELD_STORED_MAX )
@@ -442,7 +492,7 @@ void Output_DumpData_Total_HDF5( const char *FileName, const bool SkipPar, const
 #  endif
 
 #  ifdef SRHD
-   const bool OutLrtz = ( SubGridMode ) ? SubGrid_DerFieldSelected("Lrtz")
+   const bool OutLrtz = ( SubDataMode ) ? SubGrid_DerFieldSelected("Lrtz")
                          : OPT__OUTPUT_LORENTZ;
    const int LorentzDumpIdx = ( OutLrtz ) ? NFieldStored++ : NoDump;
    if ( LorentzDumpIdx >= NFIELD_STORED_MAX )
@@ -450,7 +500,7 @@ void Output_DumpData_Total_HDF5( const char *FileName, const bool SkipPar, const
    if ( OutLrtz )  sprintf( FieldLabelOut[LorentzDumpIdx], "%s", "Lrtz"   );
 
 // selecting any of VelX/Y/Z in Input__Sub_Grid keeps all three components
-   const bool Out3Vel = ( SubGridMode )
+   const bool Out3Vel = ( SubDataMode )
                         ? (  SubGrid_DerFieldSelected("VelX") || SubGrid_DerFieldSelected("VelY") ||
                              SubGrid_DerFieldSelected("VelZ")  )
                         : OPT__OUTPUT_3VELOCITY;
@@ -465,7 +515,7 @@ void Output_DumpData_Total_HDF5( const char *FileName, const bool SkipPar, const
       sprintf( FieldLabelOut[ VelDumpIdx0 + 2 ], "%s", "VelZ" );
    }
 
-   const bool OutEnth = ( SubGridMode ) ? SubGrid_DerFieldSelected("Enth")
+   const bool OutEnth = ( SubDataMode ) ? SubGrid_DerFieldSelected("Enth")
                          : OPT__OUTPUT_ENTHALPY;
    const int EnthalpyDumpIdx = ( OutEnth ) ? NFieldStored++ : NoDump;
    if ( EnthalpyDumpIdx >= NFIELD_STORED_MAX )
@@ -474,21 +524,21 @@ void Output_DumpData_Total_HDF5( const char *FileName, const bool SkipPar, const
 #  endif // #ifdef SRHD
 
 #  ifdef SUPPORT_GRACKLE
-   const bool OutGrackleTemp = ( SubGridMode ) ? SubGrid_DerFieldSelected("GrackleTemp")
+   const bool OutGrackleTemp = ( SubDataMode ) ? SubGrid_DerFieldSelected("GrackleTemp")
                                 : OPT__OUTPUT_GRACKLE_TEMP;
    const int GrackleTempDumpIdx = ( OutGrackleTemp ) ? NFieldStored++ : NoDump;
    if ( GrackleTempDumpIdx >= NFIELD_STORED_MAX )
       Aux_Error( ERROR_INFO, "exceed NFIELD_STORED_MAX (%d) !!\n", NFIELD_STORED_MAX );
    if ( OutGrackleTemp )  sprintf( FieldLabelOut[GrackleTempDumpIdx], "%s", "GrackleTemp"   );
 
-   const bool OutGrackleMu = ( SubGridMode ) ? SubGrid_DerFieldSelected("GrackleMu")
+   const bool OutGrackleMu = ( SubDataMode ) ? SubGrid_DerFieldSelected("GrackleMu")
                               : OPT__OUTPUT_GRACKLE_MU;
    const int GrackleMuDumpIdx = ( OutGrackleMu ) ? NFieldStored++ : NoDump;
    if ( GrackleMuDumpIdx >= NFIELD_STORED_MAX )
       Aux_Error( ERROR_INFO, "exceed NFIELD_STORED_MAX (%d) !!\n", NFIELD_STORED_MAX );
    if ( OutGrackleMu )  sprintf( FieldLabelOut[GrackleMuDumpIdx], "%s", "GrackleMu"   );
 
-   const bool OutGrackleTCool = ( SubGridMode ) ? SubGrid_DerFieldSelected("GrackleTCool")
+   const bool OutGrackleTCool = ( SubDataMode ) ? SubGrid_DerFieldSelected("GrackleTCool")
                                  : OPT__OUTPUT_GRACKLE_TCOOL;
    const int GrackleTCoolDumpIdx = ( OutGrackleTCool ) ? NFieldStored++ : NoDump;
    if ( GrackleTCoolDumpIdx >= NFIELD_STORED_MAX )
@@ -504,7 +554,7 @@ void Output_DumpData_Total_HDF5( const char *FileName, const bool SkipPar, const
    {
       for (int v=0; v<UserDerField_Num; v++)
       {
-         if ( SubGridMode  &&  !SubGrid_DerFieldSelected(UserDerField_Label[v]) )   continue;
+         if ( SubDataMode  &&  !SubGrid_DerFieldSelected(UserDerField_Label[v]) )   continue;
 
          if ( UserDumpIdx0 + NUserSel >= NFIELD_STORED_MAX )
             Aux_Error( ERROR_INFO, "exceed NFIELD_STORED_MAX (%d) !!\n", NFIELD_STORED_MAX );
@@ -668,11 +718,39 @@ void Output_DumpData_Total_HDF5( const char *FileName, const bool SkipPar, const
 // 4-3. store the local tree
    LB_FillLocalPatchExchangeList( pc, lel );
 
+// 4-3-1. for SubData outputs, replace the per-patch particle counts with the type-filtered
+//         counts of the CURRENT output so that yt indexes the Particle datasets correctly
+//         (zero everywhere when the Particle group is not written)
+#  ifdef PARTICLE
+   if ( SubDataMode  &&  !( SelMassive && SelTracer && OutParticle ) )
+   {
+      for (int lv=0; lv<NLEVEL; lv++)
+      for (int PID=0; PID<amr->NPatchComma[lv][1]; PID++)
+      {
+         int NParSel = 0;
+
+         if ( OutParticle )
+         for (int p=0; p<amr->patch[0][lv][PID]->NPar; p++)
+         {
+            const long TParID = amr->patch[0][lv][PID]->ParList[p];
+#           ifdef TRACER
+            const bool IsTracer = ( amr->Par->Type[TParID] == PTYPE_TRACER );
+#           else
+            const bool IsTracer = false;
+#           endif
+            if ( IsTracer ? SelTracer : SelMassive )   NParSel ++;
+         }
+
+         lel.NParList_Local[lv][PID] = NParSel;
+      }
+   }
+#  endif // #ifdef PARTICLE
+
 // 4-4. gather data from all ranks
    LB_FillGlobalPatchExchangeList( pc, lel, gel, root );
 
-// 4-5. dump the tree info
-   if ( MPI_Rank == 0 )
+// 4-5. dump the tree info (skipped when OPT__OUTPUT_SUBDIV_TREE is disabled for SubData outputs)
+   if ( MPI_Rank == 0  &&  OutTree )
    {
 //    reopen file
       H5_FileID = H5Fopen( FileName, H5F_ACC_RDWR, H5P_DEFAULT );
@@ -774,6 +852,8 @@ void Output_DumpData_Total_HDF5( const char *FileName, const bool SkipPar, const
 
 
 // 5. output the simulation grid data (density, momentum, ... etc)
+//    --> skipped entirely for SubData outputs with no selected fields (OPT__OUTPUT_SUBDIV_GRID off)
+   if ( NFieldStored > 0 ) {
    const int FieldSizeOnePatch = sizeof(real)*CUBE(PS1);
    real (*FieldData)[PS1][PS1][PS1]  = NULL;
 
@@ -1485,11 +1565,12 @@ void Output_DumpData_Total_HDF5( const char *FileName, const bool SkipPar, const
    delete [] Der_MagCC;
 #  endif
    delete [] Der_FluInTmp;
+   } // if ( NFieldStored > 0 )
 
 
 
-// 6. output particles (skipped for grid-only sub-dumps)
-   if ( !SkipPar )
+// 6. output particles (per the OPT__OUTPUT_SUBDIV_PAR/TRACER selection for SubData outputs)
+   if ( OutParticle )
 #  ifdef PARTICLE
    {
 //###ISSUE: currently we output all particles at the same level at once (although one attribute at a time),
@@ -1504,6 +1585,10 @@ void Output_DumpData_Total_HDF5( const char *FileName, const bool SkipPar, const
    long  NParLv_AllRank[NLEVEL];
    long  MaxNPar1Lv, NParInBuf, ParID;
 
+// file datatype of floating-point particle attributes (optional float32 downcast for SubData)
+   const hid_t H5T_File_ParFlt = ( SubDataMode  &&  OPT__OUTPUT_SUBDIV_FLOAT32 ) ? H5T_NATIVE_FLOAT
+                                                                                 : H5T_GAMER_REAL_PAR;
+
 // prepare particle attributes mapped from mesh quantities
    if ( OPT__OUTPUT_PAR_MESH )   Par_Output_TracerParticle_Mesh();
 
@@ -1511,13 +1596,13 @@ void Output_DumpData_Total_HDF5( const char *FileName, const bool SkipPar, const
 // 6-1. initialize variables
 // 6-1-1. allocate I/O buffer for storing particle data
    MaxNPar1Lv = 0;
-   for (int lv=0; lv<NLEVEL; lv++)  MaxNPar1Lv = MAX( MaxNPar1Lv, amr->Par->NPar_Lv[lv] );
+   for (int lv=0; lv<NLEVEL; lv++)  MaxNPar1Lv = MAX( MaxNPar1Lv, NParOut_Lv[lv] );
 
    ParFltBuf1v1Lv = new real_par [MaxNPar1Lv];
    ParIntBuf1v1Lv = new long_par [MaxNPar1Lv];
 
 // 6-1-2. get the starting global particle index (i.e., GParID_Offset[NLEVEL]) for particles at each level in this rank
-   MPI_Allgather( amr->Par->NPar_Lv, NLEVEL, MPI_LONG, NParLv_EachRank[0], NLEVEL, MPI_LONG, MPI_COMM_WORLD );
+   MPI_Allgather( NParOut_Lv, NLEVEL, MPI_LONG, NParLv_EachRank[0], NLEVEL, MPI_LONG, MPI_COMM_WORLD );
 
    for (int lv=0; lv<NLEVEL; lv++)
    {
@@ -1532,7 +1617,7 @@ void Output_DumpData_Total_HDF5( const char *FileName, const bool SkipPar, const
 
 
 // 6-2. initialize the "Particle" group and the datasets of all particle attributes
-   H5_SetDims_ParData[0] = amr->Par->NPar_Active_AllRank;
+   H5_SetDims_ParData[0] = SubData_NParOut_AllRank;
    H5_SpaceID_ParData    = H5Screate_simple( 1, H5_SetDims_ParData, NULL );
    if ( H5_SpaceID_ParData < 0 )    Aux_Error( ERROR_INFO, "failed to create the space \"%s\" !!\n", "H5_SpaceID_ParData" );
 
@@ -1553,7 +1638,7 @@ void Output_DumpData_Total_HDF5( const char *FileName, const bool SkipPar, const
       {
          char *ParLabel = ( v < PAR_NATT_FLT_STORED ) ? ParAttFltLabel[v] : amr->Par->Mesh_Attr_Label[v - PAR_NATT_FLT_STORED];
 
-         H5_SetID_ParFltData = H5Dcreate( H5_GroupID_Particle, ParLabel, H5T_GAMER_REAL_PAR, H5_SpaceID_ParData,
+         H5_SetID_ParFltData = H5Dcreate( H5_GroupID_Particle, ParLabel, H5T_File_ParFlt, H5_SpaceID_ParData,
                                           H5P_DEFAULT, H5_DataCreatePropList, H5P_DEFAULT );
          if ( H5_SetID_ParFltData < 0 )   Aux_Error( ERROR_INFO, "failed to create the dataset \"%s\" !!\n", ParLabel );
          H5_Status = H5Dclose( H5_SetID_ParFltData );
@@ -1592,14 +1677,14 @@ void Output_DumpData_Total_HDF5( const char *FileName, const bool SkipPar, const
 
 
 //       6-3-1. determine the memory space
-         H5_MemDims_ParData[0] = amr->Par->NPar_Lv[lv];
+         H5_MemDims_ParData[0] = NParOut_Lv[lv];
          H5_MemID_ParData      = H5Screate_simple( 1, H5_MemDims_ParData, NULL );
          if ( H5_MemID_ParData < 0 )   Aux_Error( ERROR_INFO, "failed to create the space \"%s\" !!\n", "H5_MemDims_ParData" );
 
 
 //       6-3-2. determine the subset of the dataspace
          H5_Offset_ParData[0] = GParID_Offset[lv];
-         H5_Count_ParData [0] = amr->Par->NPar_Lv[lv];
+         H5_Count_ParData [0] = NParOut_Lv[lv];
 
          H5_Status = H5Sselect_hyperslab( H5_SpaceID_ParData, H5S_SELECT_SET, H5_Offset_ParData, NULL, H5_Count_ParData, NULL );
          if ( H5_Status < 0 )   Aux_Error( ERROR_INFO, "failed to create a hyperslab for the particle data !!\n" );
@@ -1617,9 +1702,15 @@ void Output_DumpData_Total_HDF5( const char *FileName, const bool SkipPar, const
             {
                ParID = amr->patch[0][lv][PID]->ParList[p];
 
+#              ifdef TRACER
+               if ( !(  ( amr->Par->Type[ParID] == PTYPE_TRACER ) ? SelTracer : SelMassive  ) )   continue;
+#              else
+               if ( !SelMassive )   continue;
+#              endif
+
 #              ifdef DEBUG_PARTICLE
-               if ( NParInBuf >= amr->Par->NPar_Lv[lv] )
-                  Aux_Error( ERROR_INFO, "lv %d, NParInBuf (%ld) >= NPar_Lv (%ld) !!\n", lv, NParInBuf, amr->Par->NPar_Lv[lv] );
+               if ( NParInBuf >= NParOut_Lv[lv] )
+                  Aux_Error( ERROR_INFO, "lv %d, NParInBuf (%ld) >= NParOut_Lv (%ld) !!\n", lv, NParInBuf, NParOut_Lv[lv] );
 #              endif
 
                ParFltBuf1v1Lv[ NParInBuf ++ ] = ( v < PAR_NATT_FLT_STORED )
@@ -1652,9 +1743,15 @@ void Output_DumpData_Total_HDF5( const char *FileName, const bool SkipPar, const
             {
                ParID = amr->patch[0][lv][PID]->ParList[p];
 
+#              ifdef TRACER
+               if ( !(  ( amr->Par->Type[ParID] == PTYPE_TRACER ) ? SelTracer : SelMassive  ) )   continue;
+#              else
+               if ( !SelMassive )   continue;
+#              endif
+
 #              ifdef DEBUG_PARTICLE
-               if ( NParInBuf >= amr->Par->NPar_Lv[lv] )
-                  Aux_Error( ERROR_INFO, "lv %d, NParInBuf (%ld) >= NPar_Lv (%ld) !!\n", lv, NParInBuf, amr->Par->NPar_Lv[lv] );
+               if ( NParInBuf >= NParOut_Lv[lv] )
+                  Aux_Error( ERROR_INFO, "lv %d, NParInBuf (%ld) >= NParOut_Lv (%ld) !!\n", lv, NParInBuf, NParOut_Lv[lv] );
 #              endif
 
                ParIntBuf1v1Lv[ NParInBuf ++ ] = amr->Par->AttributeInt[v][ParID];
@@ -1686,14 +1783,14 @@ void Output_DumpData_Total_HDF5( const char *FileName, const bool SkipPar, const
    delete [] ParFltBuf1v1Lv;
    delete [] ParIntBuf1v1Lv;
    delete [] NParLv_EachRank;
-   } // if ( !SkipPar )
+   } // if ( OutParticle )
 #  endif // #ifdef PARTICLE
 
 
 
 // 7. check
 #  ifdef DEBUG_HDF5
-   if ( MPI_Rank == 0 )
+   if ( MPI_Rank == 0  &&  OutTree )
    {
       const int MirrorSib[26] = { 1,0,3,2,5,4,9,8,7,6,13,12,11,10,17,16,15,14,25,24,23,22,21,20,19,18 };
 
@@ -1854,7 +1951,8 @@ void FillIn_KeyInfo( KeyInfo_t &KeyInfo, const int NFieldStored )
    KeyInfo.NFieldStored         = NFieldStored;
    KeyInfo.NMagStored           = NCOMP_MAG;
 #  ifdef PARTICLE
-   KeyInfo.Par_NPar             = amr->Par->NPar_Active_AllRank;
+   KeyInfo.Par_NPar             = ( SubData_NParOut_AllRank >= 0 ) ? SubData_NParOut_AllRank
+                                                                    : amr->Par->NPar_Active_AllRank;
    KeyInfo.Par_NextPUID         = amr->Par->NextPUID;
    KeyInfo.Par_NAttFltStored    = PAR_NATT_FLT_STORED;
    KeyInfo.Par_NAttIntStored    = PAR_NATT_INT_STORED;
