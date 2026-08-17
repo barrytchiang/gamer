@@ -6,16 +6,16 @@
 // Description :  Populate SubGridField[], SubGridDerLabel[], and the associated counters from
 //                Input__Sub_Grid
 //
-// Note        :  1. If Input__Sub_Grid is absent, all NCOMP_TOTAL fluid fields and all enabled derived
-//                   fields are written (default)
+// Note        :  1. Input__Sub_Grid is REQUIRED when OPT__OUTPUT_SUBDIV_GRID is enabled; a missing
+//                   file is a fatal error (no silent fallback)
 //                2. Each non-comment line must contain exactly one field label (case-sensitive), which
 //                   can be either a native field (FieldLabel[v]) or a derived field recognized by
 //                   Output_DumpData_Total_HDF5() (e.g., Pote, ParDens/TotalDens, Pres, Temp, Entr,
 //                   CCMagX/Y/Z, user-defined derived fields, ...)
-//                3. When Input__Sub_Grid is present, sub-dump derived fields are controlled solely
-//                   by this list (OPT__OUTPUT_* flags then apply to main dumps only); exceptions:
-//                   ParDens/TotalDens still requires OPT__OUTPUT_PAR_DENS (deposition mode) and
-//                   user-defined fields require OPT__OUTPUT_USER_FIELD (label initialization)
+//                3. Sub-dump derived fields are controlled solely by this list (OPT__OUTPUT_* flags
+//                   apply to main dumps only); listing ParDens/TotalDens without OPT__OUTPUT_PAR_DENS
+//                   (which selects the deposition mode) or a user-defined field without
+//                   OPT__OUTPUT_USER_FIELD (which initializes the labels) is a fatal error
 //                4. Called by Init_GAMER() when OPT__OUTPUT_SUBDIV_GRID is true
 //                   --> after Init_DerivedField_User_Ptr() so that UserDerField_Label[] is available
 //-------------------------------------------------------------------------------------------------------
@@ -26,21 +26,14 @@ void Init_SubGrid_Fields()
    for (int v=0; v<NCOMP_TOTAL; v++)   SubGridField[v] = false;
    SubGridField_Num    = 0;
    SubGridDerLabel_Num = 0;
-   SubGridDerAll       = true;
 
    char FileName[] = "Input__Sub_Grid";
    FILE *File      = fopen( FileName, "r" );
 
-// default: all native fields and all enabled derived fields are written when the file is absent
+// the field-list file is required when OPT__OUTPUT_SUBDIV_GRID is enabled
    if ( File == NULL )
-   {
-      for (int v=0; v<NCOMP_TOTAL; v++)   SubGridField[v] = true;
-      SubGridField_Num = NCOMP_TOTAL;
-      return;
-   }
-
-// the file exists --> only the listed fields are written
-   SubGridDerAll = false;
+      Aux_Error( ERROR_INFO, "%s is required when OPT__OUTPUT_SUBDIV_GRID is enabled "
+                 "(see the template at example/input/Input__Sub_Grid) !!\n", FileName );
 
 // collect the derived-field labels recognized by Output_DumpData_Total_HDF5()
    const char *DerList[NFIELD_STORED_MAX];
@@ -125,6 +118,13 @@ void Init_SubGrid_Fields()
 
          if ( found )
          {
+#           ifdef MASSIVE_PARTICLES
+            if (  ( strcmp(FirstItem, "ParDens") == 0  ||  strcmp(FirstItem, "TotalDens") == 0 )  &&
+                  OPT__OUTPUT_PAR_DENS == PAR_OUTPUT_DENS_NONE  )
+               Aux_Error( ERROR_INFO, "\"%s\" in %s requires OPT__OUTPUT_PAR_DENS, which selects the deposition mode !!\n",
+                          FirstItem, FileName );
+#           endif
+
             if ( SubGridDerLabel_Num >= NFIELD_STORED_MAX )
                Aux_Error( ERROR_INFO, "number of derived fields in %s exceeds NFIELD_STORED_MAX (%d) !!\n",
                           FileName, NFIELD_STORED_MAX );
@@ -134,7 +134,9 @@ void Init_SubGrid_Fields()
       }
 
       if ( !found )
-         Aux_Error( ERROR_INFO, "unknown field label \"%s\" in %s !!\n", FirstItem, FileName );
+         Aux_Error( ERROR_INFO, "unknown field label \"%s\" in %s "
+                    "(user-defined derived fields additionally require OPT__OUTPUT_USER_FIELD) !!\n",
+                    FirstItem, FileName );
    }
 
    fclose( File );
@@ -152,7 +154,6 @@ void Init_SubGrid_Fields()
 // Description :  Check whether a derived field is selected for grid sub-dumps
 //
 // Note        :  1. Invoked by Output_DumpData_Total_HDF5() when writing grid sub-dumps (SubGridMode)
-//                2. Returns true for all labels when Input__Sub_Grid is absent (SubGridDerAll)
 //
 // Parameter   :  Label : Derived-field label to check (e.g., "Pres", PotLabel, ...)
 //
@@ -160,8 +161,6 @@ void Init_SubGrid_Fields()
 //-------------------------------------------------------------------------------------------------------
 bool SubGrid_DerFieldSelected( const char *Label )
 {
-
-   if ( SubGridDerAll )    return true;
 
    for (int t=0; t<SubGridDerLabel_Num; t++)
       if ( strcmp( SubGridDerLabel[t], Label ) == 0 )    return true;

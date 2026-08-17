@@ -76,7 +76,7 @@ static void Par_Output_SubDump_HDF5( const char *FileName, const bool IsTracer, 
 {
    const long   NTotal      = amr->Par->NPar_AcPlusInac;
    const int    NMeshAttr   = amr->Par->Mesh_Attr_Num;
-   const bool   ForceFloat32 = IsTracer ? (OPT__OUTPUT_SUBDIV_TRACER == 2) : (OPT__OUTPUT_SUBDIV_PAR == 2);
+   const bool   ForceFloat32 = OPT__OUTPUT_SUBDIV_FLOAT32;
    const hid_t  H5T_FltOut  = ForceFloat32 ? H5T_NATIVE_FLOAT : H5T_GAMER_REAL_PAR;
 
 // populate mesh-sampled attributes before counting particles

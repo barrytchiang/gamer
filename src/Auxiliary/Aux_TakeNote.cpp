@@ -1711,6 +1711,8 @@ void Aux_TakeNote()
       fprintf( Note, "OPT__OUTPUT_SUBDIV_GRID        % d\n",      OPT__OUTPUT_SUBDIV_GRID     );
       fprintf( Note, "OPT__OUTPUT_SUBDIV_PAR         % d\n",      OPT__OUTPUT_SUBDIV_PAR      );
       fprintf( Note, "OPT__OUTPUT_SUBDIV_TRACER      % d\n",      OPT__OUTPUT_SUBDIV_TRACER   );
+      fprintf( Note, "OPT__OUTPUT_SUBDIV_TREE        % d\n",      OPT__OUTPUT_SUBDIV_TREE     );
+      fprintf( Note, "OPT__OUTPUT_SUBDIV_FLOAT32     % d\n",      OPT__OUTPUT_SUBDIV_FLOAT32  );
       fprintf( Note, "OPT__OUTPUT_SUBDIV_USER        % d\n",      OPT__OUTPUT_SUBDIV_USER     );
       fprintf( Note, "INIT_DUMPID                    % d\n",      INIT_DUMPID                 );
       fprintf( Note, "OUTPUT_DIR                      %s\n",      OUTPUT_DIR                  );

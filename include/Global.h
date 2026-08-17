@@ -68,9 +68,10 @@ extern bool       SubGridField[NCOMP_TOTAL];           // which native fluid fie
 extern int        SubGridField_Num;                    // number of enabled fields in SubGridField[]
 extern char       SubGridDerLabel[NFIELD_STORED_MAX][MAX_STRING];   // derived-field labels selected in Input__Sub_Grid
 extern int        SubGridDerLabel_Num;                 // number of labels in SubGridDerLabel[]
-extern bool       SubGridDerAll;                       // keep all enabled derived fields in grid sub-dumps
-extern int        OPT__OUTPUT_SUBDIV_PAR;              // massive-particle HDF5 at sub-cadence (0=off,1=on,2=on+float32)
-extern int        OPT__OUTPUT_SUBDIV_TRACER;           // tracer HDF5 at sub-cadence (0=off,1=on,2=on+float32)
+extern bool       OPT__OUTPUT_SUBDIV_PAR;              // include massive particles in the SubData_* Particle group
+extern bool       OPT__OUTPUT_SUBDIV_TRACER;           // include tracer particles in the SubData_* Particle group
+extern bool       OPT__OUTPUT_SUBDIV_TREE;             // include the Tree group in SubData_* (required for yt and for _GRID)
+extern bool       OPT__OUTPUT_SUBDIV_FLOAT32;          // downcast SubData_* Particle-group data to float32
 extern bool       OPT__OUTPUT_SUBDIV_USER;            // fire Output_User_Ptr at sub-cadence (requires OPT__OUTPUT_USER)
 extern int        MPI_NRank, MPI_NRank_X[3];
 extern int        GPU_NSTREAM, FLAG_BUFFER_SIZE, FLAG_BUFFER_SIZE_MAXM1_LV, FLAG_BUFFER_SIZE_MAXM2_LV, MAX_LEVEL;

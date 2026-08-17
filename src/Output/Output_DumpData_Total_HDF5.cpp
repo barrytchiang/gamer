@@ -349,12 +349,11 @@ void Output_DumpData_Total_HDF5( const char *FileName, const bool SkipPar, const
    }
    const int NCompStore  = NCOMP_TOTAL - NCompFluSkip;
 
-// for grid sub-dumps (SubGridMode) with Input__Sub_Grid present, derived fields are controlled
-// SOLELY by Input__Sub_Grid (the OPT__OUTPUT_* flags then apply to main dumps only); without
-// Input__Sub_Grid, sub-dumps mirror the OPT__OUTPUT_* flags
-// --> exceptions: ParDens/TotalDens and user-defined fields still require their flags (see below)
+// for grid sub-dumps (SubGridMode), derived fields are controlled SOLELY by Input__Sub_Grid
+// (the OPT__OUTPUT_* flags apply to main dumps only; the file is required and validated by
+// Init_SubGrid_Fields(), including the ParDens/TotalDens and user-defined-field flag requirements)
 #  ifdef GRAVITY
-   const bool OutPot = ( SubGridMode && !SubGridDerAll ) ? SubGrid_DerFieldSelected(PotLabel) : OPT__OUTPUT_POT;
+   const bool OutPot = ( SubGridMode ) ? SubGrid_DerFieldSelected(PotLabel) : OPT__OUTPUT_POT;
    const int PotDumpIdx = ( OutPot ) ? NFieldStored++ : NoDump;
    if ( PotDumpIdx >= NFIELD_STORED_MAX )
       Aux_Error( ERROR_INFO, "exceed NFIELD_STORED_MAX (%d) !!\n", NFIELD_STORED_MAX );
@@ -365,7 +364,7 @@ void Output_DumpData_Total_HDF5( const char *FileName, const bool SkipPar, const
    const char *ParDensLabel = ( OPT__OUTPUT_PAR_DENS == PAR_OUTPUT_DENS_PAR_ONLY ) ? "ParDens" : "TotalDens";
 // OPT__OUTPUT_PAR_DENS is still required in sub-dumps since it selects the deposition mode
    const bool OutParDens = ( OPT__OUTPUT_PAR_DENS != PAR_OUTPUT_DENS_NONE )  &&
-                           ( !( SubGridMode && !SubGridDerAll ) || SubGrid_DerFieldSelected(ParDensLabel) );
+                           ( !( SubGridMode ) || SubGrid_DerFieldSelected(ParDensLabel) );
    const int ParDensDumpIdx = ( OutParDens ) ? NFieldStored++ : NoDump;
    if ( ParDensDumpIdx >= NFIELD_STORED_MAX )
       Aux_Error( ERROR_INFO, "exceed NFIELD_STORED_MAX (%d) !!\n", NFIELD_STORED_MAX );
@@ -374,7 +373,7 @@ void Output_DumpData_Total_HDF5( const char *FileName, const bool SkipPar, const
 
 #  ifdef MHD
 // selecting any of CCMagX/Y/Z in Input__Sub_Grid keeps all three components
-   const bool OutCCMag = ( SubGridMode && !SubGridDerAll )
+   const bool OutCCMag = ( SubGridMode )
                          ? (  SubGrid_DerFieldSelected("CCMagX") || SubGrid_DerFieldSelected("CCMagY") ||
                               SubGrid_DerFieldSelected("CCMagZ")  )
                          : OPT__OUTPUT_CC_MAG;
@@ -391,42 +390,42 @@ void Output_DumpData_Total_HDF5( const char *FileName, const bool SkipPar, const
 #  endif
 
 #  if ( MODEL == HYDRO )
-   const bool OutPres = ( SubGridMode && !SubGridDerAll ) ? SubGrid_DerFieldSelected("Pres")
+   const bool OutPres = ( SubGridMode ) ? SubGrid_DerFieldSelected("Pres")
                          : OPT__OUTPUT_PRES;
    const int PresDumpIdx = ( OutPres ) ? NFieldStored++ : NoDump;
    if ( PresDumpIdx >= NFIELD_STORED_MAX )
       Aux_Error( ERROR_INFO, "exceed NFIELD_STORED_MAX (%d) !!\n", NFIELD_STORED_MAX );
    if ( OutPres )  sprintf( FieldLabelOut[PresDumpIdx  ], "%s", "Pres"   );
 
-   const bool OutTemp = ( SubGridMode && !SubGridDerAll ) ? SubGrid_DerFieldSelected("Temp")
+   const bool OutTemp = ( SubGridMode ) ? SubGrid_DerFieldSelected("Temp")
                          : OPT__OUTPUT_TEMP;
    const int TempDumpIdx = ( OutTemp ) ? NFieldStored++ : NoDump;
    if ( TempDumpIdx >= NFIELD_STORED_MAX )
       Aux_Error( ERROR_INFO, "exceed NFIELD_STORED_MAX (%d) !!\n", NFIELD_STORED_MAX );
    if ( OutTemp )  sprintf( FieldLabelOut[TempDumpIdx  ], "%s", "Temp"   );
 
-   const bool OutEntr = ( SubGridMode && !SubGridDerAll ) ? SubGrid_DerFieldSelected("Entr")
+   const bool OutEntr = ( SubGridMode ) ? SubGrid_DerFieldSelected("Entr")
                          : OPT__OUTPUT_ENTR;
    const int EntrDumpIdx = ( OutEntr ) ? NFieldStored++ : NoDump;
    if ( EntrDumpIdx >= NFIELD_STORED_MAX )
       Aux_Error( ERROR_INFO, "exceed NFIELD_STORED_MAX (%d) !!\n", NFIELD_STORED_MAX );
    if ( OutEntr )  sprintf( FieldLabelOut[EntrDumpIdx  ], "%s", "Entr"   );
 
-   const bool OutCs = ( SubGridMode && !SubGridDerAll ) ? SubGrid_DerFieldSelected("Cs")
+   const bool OutCs = ( SubGridMode ) ? SubGrid_DerFieldSelected("Cs")
                         : OPT__OUTPUT_CS;
    const int CsDumpIdx = ( OutCs ) ? NFieldStored++ : NoDump;
    if ( CsDumpIdx >= NFIELD_STORED_MAX )
       Aux_Error( ERROR_INFO, "exceed NFIELD_STORED_MAX (%d) !!\n", NFIELD_STORED_MAX );
    if ( OutCs )  sprintf( FieldLabelOut[CsDumpIdx    ], "%s", "Cs"   );
 
-   const bool OutDivVel = ( SubGridMode && !SubGridDerAll ) ? SubGrid_DerFieldSelected("DivVel")
+   const bool OutDivVel = ( SubGridMode ) ? SubGrid_DerFieldSelected("DivVel")
                            : OPT__OUTPUT_DIVVEL;
    const int DivVelDumpIdx = ( OutDivVel ) ? NFieldStored++ : NoDump;
    if ( DivVelDumpIdx >= NFIELD_STORED_MAX )
       Aux_Error( ERROR_INFO, "exceed NFIELD_STORED_MAX (%d) !!\n", NFIELD_STORED_MAX );
    if ( OutDivVel )  sprintf( FieldLabelOut[DivVelDumpIdx], "%s", "DivVel"   );
 
-   const bool OutMach = ( SubGridMode && !SubGridDerAll ) ? SubGrid_DerFieldSelected("Mach")
+   const bool OutMach = ( SubGridMode ) ? SubGrid_DerFieldSelected("Mach")
                          : OPT__OUTPUT_MACH;
    const int MachDumpIdx = ( OutMach ) ? NFieldStored++ : NoDump;
    if ( MachDumpIdx >= NFIELD_STORED_MAX )
@@ -434,7 +433,7 @@ void Output_DumpData_Total_HDF5( const char *FileName, const bool SkipPar, const
    if ( OutMach )  sprintf( FieldLabelOut[MachDumpIdx  ], "%s", "Mach"   );
 
 #  ifdef MHD
-   const bool OutDivMag = ( SubGridMode && !SubGridDerAll ) ? SubGrid_DerFieldSelected("DivMag")
+   const bool OutDivMag = ( SubGridMode ) ? SubGrid_DerFieldSelected("DivMag")
                            : OPT__OUTPUT_DIVMAG;
    const int DivMagDumpIdx = ( OutDivMag ) ? NFieldStored++ : NoDump;
    if ( DivMagDumpIdx >= NFIELD_STORED_MAX )
@@ -443,7 +442,7 @@ void Output_DumpData_Total_HDF5( const char *FileName, const bool SkipPar, const
 #  endif
 
 #  ifdef SRHD
-   const bool OutLrtz = ( SubGridMode && !SubGridDerAll ) ? SubGrid_DerFieldSelected("Lrtz")
+   const bool OutLrtz = ( SubGridMode ) ? SubGrid_DerFieldSelected("Lrtz")
                          : OPT__OUTPUT_LORENTZ;
    const int LorentzDumpIdx = ( OutLrtz ) ? NFieldStored++ : NoDump;
    if ( LorentzDumpIdx >= NFIELD_STORED_MAX )
@@ -451,7 +450,7 @@ void Output_DumpData_Total_HDF5( const char *FileName, const bool SkipPar, const
    if ( OutLrtz )  sprintf( FieldLabelOut[LorentzDumpIdx], "%s", "Lrtz"   );
 
 // selecting any of VelX/Y/Z in Input__Sub_Grid keeps all three components
-   const bool Out3Vel = ( SubGridMode && !SubGridDerAll )
+   const bool Out3Vel = ( SubGridMode )
                         ? (  SubGrid_DerFieldSelected("VelX") || SubGrid_DerFieldSelected("VelY") ||
                              SubGrid_DerFieldSelected("VelZ")  )
                         : OPT__OUTPUT_3VELOCITY;
@@ -466,7 +465,7 @@ void Output_DumpData_Total_HDF5( const char *FileName, const bool SkipPar, const
       sprintf( FieldLabelOut[ VelDumpIdx0 + 2 ], "%s", "VelZ" );
    }
 
-   const bool OutEnth = ( SubGridMode && !SubGridDerAll ) ? SubGrid_DerFieldSelected("Enth")
+   const bool OutEnth = ( SubGridMode ) ? SubGrid_DerFieldSelected("Enth")
                          : OPT__OUTPUT_ENTHALPY;
    const int EnthalpyDumpIdx = ( OutEnth ) ? NFieldStored++ : NoDump;
    if ( EnthalpyDumpIdx >= NFIELD_STORED_MAX )
@@ -475,21 +474,21 @@ void Output_DumpData_Total_HDF5( const char *FileName, const bool SkipPar, const
 #  endif // #ifdef SRHD
 
 #  ifdef SUPPORT_GRACKLE
-   const bool OutGrackleTemp = ( SubGridMode && !SubGridDerAll ) ? SubGrid_DerFieldSelected("GrackleTemp")
+   const bool OutGrackleTemp = ( SubGridMode ) ? SubGrid_DerFieldSelected("GrackleTemp")
                                 : OPT__OUTPUT_GRACKLE_TEMP;
    const int GrackleTempDumpIdx = ( OutGrackleTemp ) ? NFieldStored++ : NoDump;
    if ( GrackleTempDumpIdx >= NFIELD_STORED_MAX )
       Aux_Error( ERROR_INFO, "exceed NFIELD_STORED_MAX (%d) !!\n", NFIELD_STORED_MAX );
    if ( OutGrackleTemp )  sprintf( FieldLabelOut[GrackleTempDumpIdx], "%s", "GrackleTemp"   );
 
-   const bool OutGrackleMu = ( SubGridMode && !SubGridDerAll ) ? SubGrid_DerFieldSelected("GrackleMu")
+   const bool OutGrackleMu = ( SubGridMode ) ? SubGrid_DerFieldSelected("GrackleMu")
                               : OPT__OUTPUT_GRACKLE_MU;
    const int GrackleMuDumpIdx = ( OutGrackleMu ) ? NFieldStored++ : NoDump;
    if ( GrackleMuDumpIdx >= NFIELD_STORED_MAX )
       Aux_Error( ERROR_INFO, "exceed NFIELD_STORED_MAX (%d) !!\n", NFIELD_STORED_MAX );
    if ( OutGrackleMu )  sprintf( FieldLabelOut[GrackleMuDumpIdx], "%s", "GrackleMu"   );
 
-   const bool OutGrackleTCool = ( SubGridMode && !SubGridDerAll ) ? SubGrid_DerFieldSelected("GrackleTCool")
+   const bool OutGrackleTCool = ( SubGridMode ) ? SubGrid_DerFieldSelected("GrackleTCool")
                                  : OPT__OUTPUT_GRACKLE_TCOOL;
    const int GrackleTCoolDumpIdx = ( OutGrackleTCool ) ? NFieldStored++ : NoDump;
    if ( GrackleTCoolDumpIdx >= NFIELD_STORED_MAX )
@@ -505,7 +504,7 @@ void Output_DumpData_Total_HDF5( const char *FileName, const bool SkipPar, const
    {
       for (int v=0; v<UserDerField_Num; v++)
       {
-         if ( SubGridMode  &&  !SubGridDerAll  &&  !SubGrid_DerFieldSelected(UserDerField_Label[v]) )   continue;
+         if ( SubGridMode  &&  !SubGrid_DerFieldSelected(UserDerField_Label[v]) )   continue;
 
          if ( UserDumpIdx0 + NUserSel >= NFIELD_STORED_MAX )
             Aux_Error( ERROR_INFO, "exceed NFIELD_STORED_MAX (%d) !!\n", NFIELD_STORED_MAX );
@@ -3069,6 +3068,8 @@ void FillIn_InputPara( InputPara_t &InputPara, const int NFieldStored, char Fiel
    InputPara.Opt__Output_Subdiv_Grid     = OPT__OUTPUT_SUBDIV_GRID;
    InputPara.Opt__Output_Subdiv_Par      = OPT__OUTPUT_SUBDIV_PAR;
    InputPara.Opt__Output_Subdiv_Tracer   = OPT__OUTPUT_SUBDIV_TRACER;
+   InputPara.Opt__Output_Subdiv_Tree     = OPT__OUTPUT_SUBDIV_TREE;
+   InputPara.Opt__Output_Subdiv_Float32  = OPT__OUTPUT_SUBDIV_FLOAT32;
    InputPara.Opt__Output_Subdiv_User     = OPT__OUTPUT_SUBDIV_USER;
 
 // libyt jupyter
@@ -4167,6 +4168,8 @@ void GetCompound_InputPara( hid_t &H5_TypeID, const int NFieldStored )
    H5Tinsert( H5_TypeID, "Opt__Output_Subdiv_Grid",    HOFFSET(InputPara_t,Opt__Output_Subdiv_Grid    ), H5T_NATIVE_INT              );
    H5Tinsert( H5_TypeID, "Opt__Output_Subdiv_Par",     HOFFSET(InputPara_t,Opt__Output_Subdiv_Par     ), H5T_NATIVE_INT              );
    H5Tinsert( H5_TypeID, "Opt__Output_Subdiv_Tracer",  HOFFSET(InputPara_t,Opt__Output_Subdiv_Tracer  ), H5T_NATIVE_INT              );
+   H5Tinsert( H5_TypeID, "Opt__Output_Subdiv_Tree",    HOFFSET(InputPara_t,Opt__Output_Subdiv_Tree    ), H5T_NATIVE_INT              );
+   H5Tinsert( H5_TypeID, "Opt__Output_Subdiv_Float32", HOFFSET(InputPara_t,Opt__Output_Subdiv_Float32 ), H5T_NATIVE_INT              );
    H5Tinsert( H5_TypeID, "Opt__Output_Subdiv_User",    HOFFSET(InputPara_t,Opt__Output_Subdiv_User    ), H5T_NATIVE_INT              );
 
 // libyt jupyter

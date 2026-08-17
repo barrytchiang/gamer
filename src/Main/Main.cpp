@@ -59,9 +59,10 @@ bool                 SubGridField[NCOMP_TOTAL]      = {};   // zero-initialized 
 int                  SubGridField_Num               = 0;
 char                 SubGridDerLabel[NFIELD_STORED_MAX][MAX_STRING];   // derived-field labels selected in Input__Sub_Grid
 int                  SubGridDerLabel_Num            = 0;
-bool                 SubGridDerAll                  = true;  // true (e.g., Input__Sub_Grid absent) = keep all enabled derived fields in grid sub-dumps
-int                  OPT__OUTPUT_SUBDIV_PAR         = 0;
-int                  OPT__OUTPUT_SUBDIV_TRACER      = 0;
+bool                 OPT__OUTPUT_SUBDIV_PAR         = false;
+bool                 OPT__OUTPUT_SUBDIV_TRACER      = false;
+bool                 OPT__OUTPUT_SUBDIV_TREE        = true;
+bool                 OPT__OUTPUT_SUBDIV_FLOAT32     = false;
 bool                 OPT__OUTPUT_SUBDIV_USER        = false;
 int                  MPI_NRank, MPI_NRank_X[3];
 int                  GPU_NSTREAM, FLAG_BUFFER_SIZE, FLAG_BUFFER_SIZE_MAXM1_LV, FLAG_BUFFER_SIZE_MAXM2_LV, MAX_LEVEL;

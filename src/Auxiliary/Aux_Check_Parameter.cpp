@@ -397,13 +397,8 @@ void Aux_Check_Parameter()
    if ( OPT__OUTPUT_SUBDIV == 0 )
       Aux_Error( ERROR_INFO, "OPT__OUTPUT_SUBDIV = 0 is not allowed; use <0 to disable or a positive integer (>=1) to enable !!\n" );
 
-   if ( OPT__OUTPUT_SUBDIV_PAR < 0  ||  OPT__OUTPUT_SUBDIV_PAR > 2 )
-      Aux_Error( ERROR_INFO, "OPT__OUTPUT_SUBDIV_PAR = %d is not supported; valid values: 0=off, 1=on, 2=on+float32 !!\n",
-                 OPT__OUTPUT_SUBDIV_PAR );
-
-   if ( OPT__OUTPUT_SUBDIV_TRACER < 0  ||  OPT__OUTPUT_SUBDIV_TRACER > 2 )
-      Aux_Error( ERROR_INFO, "OPT__OUTPUT_SUBDIV_TRACER = %d is not supported; valid values: 0=off, 1=on, 2=on+float32 !!\n",
-                 OPT__OUTPUT_SUBDIV_TRACER );
+   if ( OPT__OUTPUT_SUBDIV_GRID  &&  !OPT__OUTPUT_SUBDIV_TREE )
+      Aux_Error( ERROR_INFO, "OPT__OUTPUT_SUBDIV_GRID requires OPT__OUTPUT_SUBDIV_TREE = 1 !!\n" );
 
 // any sub-cadence output flag requires OPT__OUTPUT_SUBDIV >= 1;
 // conversely, OPT__OUTPUT_SUBDIV >= 1 requires at least one flag to be enabled
