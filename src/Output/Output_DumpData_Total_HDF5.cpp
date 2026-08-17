@@ -306,6 +306,10 @@ void Output_DumpData_Total_HDF5( const char *FileName, const bool SubDataMode )
    const bool OutParticle = !SubDataMode  ||  OPT__OUTPUT_SUBDIV_PAR  ||  OPT__OUTPUT_SUBDIV_TRACER;
    const bool SelMassive  = !SubDataMode  ||  OPT__OUTPUT_SUBDIV_PAR;      // non-tracer types
    const bool SelTracer   = !SubDataMode  ||  OPT__OUTPUT_SUBDIV_TRACER;
+#  else
+   const bool OutParticle = false;
+#  endif
+#  ifdef PARTICLE
 
 // per-level particle counts included in this output (type-filtered for SubData)
    long NParOut_Lv[NLEVEL];
