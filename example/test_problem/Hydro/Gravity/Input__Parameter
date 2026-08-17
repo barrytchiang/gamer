@@ -191,6 +191,8 @@ OPT__OUTPUT_SUBDIV_GRID       0           # include the GridData group in SubDat
 OPT__OUTPUT_SUBDIV_PAR        0           # include massive particles in the SubData_* Particle group [0]
 OPT__OUTPUT_SUBDIV_TRACER     0           # include tracer particles in the SubData_* Particle group [0]
 OPT__OUTPUT_SUBDIV_TREE       1           # include the Tree group in SubData_* (required for yt loading and for _GRID) [1]
+                                          # --> keep enabled so SubData_* loads in yt; disable only to minimize the
+                                          #     file size when sub-dumps are consumed by direct h5py/NumPy reads only
 OPT__OUTPUT_SUBDIV_FLOAT32    0           # downcast SubData_* Particle-group data to float32 [0]
 OPT__OUTPUT_SUBDIV_USER       0           # fire Output_User_Ptr() at sub-cadence (requires OPT__OUTPUT_USER=1) [0]
                                           # when enabled, Output_User_Ptr() fires exclusively via the sub-cadence path
