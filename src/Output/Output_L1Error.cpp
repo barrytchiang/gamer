@@ -57,8 +57,9 @@ void Output_L1Error( void (*AnalFunc_Flu)( real fluid[], const double x, const d
                      const char *Prefix, const OptOutputPart_t Part, const double x, const double y, const double z )
 {
 
-// use SubDumpID for file naming when OPT__OUTPUT_SUBDIV is enabled so sub-dump files don't collide with main dumps
-   const int FileID = ( OPT__OUTPUT_SUBDIV >= 1 ) ? SubDumpID : DumpID;
+// use SubDumpID for file naming only when user outputs fire at sub-cadence (OPT__OUTPUT_SUBDIV_USER)
+// so sub-dump files don't collide with main dumps
+   const int FileID = ( OPT__OUTPUT_SUBDIV_USER  &&  OPT__OUTPUT_SUBDIV >= 1 ) ? SubDumpID : DumpID;
 
    if ( MPI_Rank == 0 )    Aux_Message( stdout, "%s (DumpID = %d, SubDumpID = %d) ...\n", __FUNCTION__, DumpID, SubDumpID );
 
