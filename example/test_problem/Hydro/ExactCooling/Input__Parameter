@@ -175,6 +175,7 @@ GRACKLE_PRIMORDIAL            0           # ...    "primordial_chemistry" (0=Clo
                                           #        (must increase NCOMP_PASSIVE_USER by 6/9/12, respectively)
 GRACKLE_METAL                 0           # ...    "metal_cooling" (must increase NCOMP_PASSIVE_USER by 1) [0]
 GRACKLE_UV                    0           # ...    "UVbackground" [0]
+GRACKLE_SELF_SHIELDING        0           # ...    "self_shielding_method" (0=off, 1/2/3=methods 1/2/3; require GRACKLE_PRIMORDIAL>0) [0]
 GRACKLE_CMB_FLOOR             1           # ...    "cmb_temperature_floor" [1]
 GRACKLE_PE_HEATING            0           # ...    "photoelectric_heating" [0]
 GRACKLE_PE_HEATING_RATE       8.5e-26     # ...    "photoelectric_heating_rate (in erg/cm^3/s)" [8.5e-26]

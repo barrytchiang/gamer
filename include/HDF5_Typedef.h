@@ -721,6 +721,7 @@ struct InputPara_t
    int    Grackle_Primordial;
    int    Grackle_Metal;
    int    Grackle_UV;
+   int    Grackle_SelfShielding;
    int    Grackle_CMB_Floor;
    int    Grackle_PE_Heating;
    double Grackle_PE_HeatingRate;

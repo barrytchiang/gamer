@@ -108,6 +108,7 @@ void Grackle_Init()
    grackle_data->primordial_chemistry           = GRACKLE_PRIMORDIAL;
    grackle_data->metal_cooling                  = GRACKLE_METAL;
    grackle_data->UVbackground                   = GRACKLE_UV;
+   grackle_data->self_shielding_method          = GRACKLE_SELF_SHIELDING;
    grackle_data->cmb_temperature_floor          = GRACKLE_CMB_FLOOR;
    grackle_data->photoelectric_heating          = GRACKLE_PE_HEATING;
    grackle_data->photoelectric_heating_rate     = GRACKLE_PE_HEATING_RATE;

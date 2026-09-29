@@ -280,6 +280,7 @@ extern bool            GRACKLE_COOLING;
 extern GracklePriChe_t GRACKLE_PRIMORDIAL;
 extern bool            GRACKLE_METAL;
 extern bool            GRACKLE_UV;
+extern int             GRACKLE_SELF_SHIELDING;
 extern bool            GRACKLE_CMB_FLOOR;
 extern bool            GRACKLE_PE_HEATING;
 extern double          GRACKLE_PE_HEATING_RATE;

@@ -1187,6 +1187,7 @@ void Aux_TakeNote()
       fprintf( Note, "GRACKLE_PRIMORDIAL             % d\n",      GRACKLE_PRIMORDIAL         );
       fprintf( Note, "GRACKLE_METAL                  % d\n",      GRACKLE_METAL              );
       fprintf( Note, "GRACKLE_UV                     % d\n",      GRACKLE_UV                 );
+      fprintf( Note, "GRACKLE_SELF_SHIELDING         % d\n",      GRACKLE_SELF_SHIELDING     );
       fprintf( Note, "GRACKLE_CMB_FLOOR              % d\n",      GRACKLE_CMB_FLOOR          );
       fprintf( Note, "GRACKLE_PE_HEATING             % d\n",      GRACKLE_PE_HEATING         );
       fprintf( Note, "GRACKLE_PE_HEATING_RATE        % 14.7e\n",  GRACKLE_PE_HEATING_RATE    );

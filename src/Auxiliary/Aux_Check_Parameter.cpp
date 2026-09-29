@@ -1830,6 +1830,16 @@ void Aux_Check_Parameter()
          Aux_Error( ERROR_INFO, "OPT__UNFREEZE_GRACKLE requires the option GRACKLE_ACTIVATE !!\n");
    }
 
+   if ( GRACKLE_SELF_SHIELDING > 0 )
+   {
+//    Grackle applies the self-shielding approximation only when solving the primordial chemistry network
+      if ( GRACKLE_PRIMORDIAL == GRACKLE_PRI_CHE_CLOUDY )
+         Aux_Error( ERROR_INFO, "GRACKLE_SELF_SHIELDING requires GRACKLE_PRIMORDIAL > 0 !!\n" );
+
+      if ( ! GRACKLE_UV )
+         Aux_Error( ERROR_INFO, "GRACKLE_SELF_SHIELDING requires the option GRACKLE_UV !!\n" );
+   }
+
 // warning
 // ------------------------------
    if ( MPI_Rank == 0 ) {

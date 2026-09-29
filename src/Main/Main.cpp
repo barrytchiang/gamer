@@ -262,6 +262,7 @@ bool                 GRACKLE_COOLING;
 GracklePriChe_t      GRACKLE_PRIMORDIAL;
 bool                 GRACKLE_METAL;
 bool                 GRACKLE_UV;
+int                  GRACKLE_SELF_SHIELDING;
 bool                 GRACKLE_CMB_FLOOR;
 bool                 GRACKLE_PE_HEATING;
 double               GRACKLE_PE_HEATING_RATE;

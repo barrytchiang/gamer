@@ -6,6 +6,7 @@ Parameters described on this page:
 [GRACKLE_PRIMORDIAL](#GRACKLE_PRIMORDIAL), &nbsp;
 [GRACKLE_METAL](#GRACKLE_METAL), &nbsp;
 [GRACKLE_UV](#GRACKLE_UV), &nbsp;
+[GRACKLE_SELF_SHIELDING](#GRACKLE_SELF_SHIELDING), &nbsp;
 [GRACKLE_CMB_FLOOR](#GRACKLE_CMB_FLOOR), &nbsp;
 [GRACKLE_PE_HEATING](#GRACKLE_PE_HEATING), &nbsp;
 [GRACKLE_PE_HEATING_RATE](#GRACKLE_PE_HEATING_RATE), &nbsp;
@@ -74,6 +75,14 @@ by 1 and initialize the field `Metal` using the field index `Idx_Metal` properly
     * **Description:**
 Map to the ["UVbackground" runtime parameter in GRACKLE](https://grackle.readthedocs.io/en/latest/Parameters.html#c.UVbackground).
     * **Restriction:**
+
+<a name="GRACKLE_SELF_SHIELDING"></a>
+* #### `GRACKLE_SELF_SHIELDING` &ensp; (0=off, 1/2/3=self-shielding methods 1/2/3) &ensp; [0]
+    * **Description:**
+Map to the ["self_shielding_method" runtime parameter in GRACKLE](https://grackle.readthedocs.io/en/latest/Parameters.html#c.self_shielding_method).
+    * **Restriction:**
+Only applicable when enabling [GRACKLE_UV](#GRACKLE_UV) and adopting [GRACKLE_PRIMORDIAL](#GRACKLE_PRIMORDIAL)>0.
+Must work with a self-shielded cooling table (e.g., `CloudyData_UVB=HM2012_shielded.h5`) specified by [GRACKLE_CLOUDY_TABLE](#GRACKLE_CLOUDY_TABLE).
 
 <a name="GRACKLE_CMB_FLOOR"></a>
 * #### `GRACKLE_CMB_FLOOR` &ensp; (0=off, 1=on) &ensp; [1]
