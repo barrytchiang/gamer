@@ -132,6 +132,11 @@ Note:
    - Source: https://github.com/grackle-project/grackle_data_files/tree/main/input
    - The default table `CloudyData_UVB=HM2012.h5` can be downloaded by `sh download_CloudyData_UVB.sh`
 
+12. The self-shielding of the UV background
+   - Set `GRACKLE_SELF_SHIELDING` in `Input__Parameter` to select the method
+   - It requires `GRACKLE_UV` and `GRACKLE_PRIMORDIAL` > 0
+   - `GRACKLE_CLOUDY_TABLE` must be a self-shielded table (e.g., `CloudyData_UVB=HM2012_shielded.h5`)
+
 
 First-time GRACKLE installation guide (on NTU clusters as an example):
 ========================================
